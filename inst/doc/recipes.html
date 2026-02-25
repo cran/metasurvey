@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Creating and Sharing Recipes</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Creating and Sharing Recipes</h1>
+
+
+
+<div id="why-recipes" class="section level2">
+<h2>Why Recipes?</h2>
+<p>Anyone who works with household survey microdata knows this pattern:
+you download the raw files, open the codebook, and spend days recoding
+employment status, harmonizing income variables, and building
+indicators. Months later, a colleague starts the same project and writes
+the same code from scratch.</p>
+<p>In STATA, teams share <code>.do</code> files, but these are tightly
+coupled to specific file paths and variable names, and there is no
+standard way to discover or validate them.</p>
+<p><strong>Recipes</strong> are metasurvey’s answer to this problem. A
+recipe is a portable, documented, and validated collection of
+transformation steps that can:</p>
+<ul>
+<li>Be applied to any compatible edition of a survey with a single
+function call</li>
+<li>Be published to a registry where others can discover and reuse
+them</li>
+<li>Be certified by institutions for official use</li>
+<li>Generate automatic documentation of inputs, outputs, and
+pipeline</li>
+</ul>
+</div>
+<div id="recipe-lifecycle" class="section level2">
+<h2>Recipe Lifecycle</h2>
+<pre><code>  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+  │  1. Develop   │────▶│  2. Package   │────▶│  3. Validate  │
+  │  steps on a   │     │  steps into   │     │  against new  │
+  │  survey       │     │  a recipe     │     │  data         │
+  └──────────────┘     └──────────────┘     └──────┬───────┘
+                                                    │
+  ┌──────────────┐     ┌──────────────┐             │
+  │  5. Discover  │◀────│  4. Publish   │◀────────────┘
+  │  &amp; reuse      │     │  to registry  │
+  │  recipes      │     │  or API       │
+  └──────────────┘     └──────────────┘</code></pre>
+</div>
+<div id="loading-a-survey" class="section level2">
+<h2>Loading a Survey</h2>
+<p>The typical starting point is loading a survey with
+<code>load_survey()</code>. You can load example data or point to your
+own files:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(metasurvey)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># Load ECH 2022 with example data (downloads from GitHub)</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>ech_2022 <span class="ot">&lt;-</span> <span class="fu">load_survey</span>(</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="fu">load_survey_example</span>(<span class="st">&quot;ech&quot;</span>, <span class="st">&quot;ech_2022&quot;</span>),</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="at">svy_type    =</span> <span class="st">&quot;ech&quot;</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="at">svy_edition =</span> <span class="st">&quot;2022&quot;</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="at">svy_weight  =</span> <span class="fu">add_weight</span>(<span class="at">annual =</span> <span class="st">&quot;pesoano&quot;</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>)</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co"># Or load with existing recipes from the registry (requires API server)</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>ech_2022 <span class="ot">&lt;-</span> <span class="fu">load_survey</span>(</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>  <span class="fu">load_survey_example</span>(<span class="st">&quot;ech&quot;</span>, <span class="st">&quot;ech_2022&quot;</span>),</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>  <span class="at">svy_type    =</span> <span class="st">&quot;ech&quot;</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>  <span class="at">svy_edition =</span> <span class="st">&quot;2022&quot;</span>,</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>  <span class="at">svy_weight  =</span> <span class="fu">add_weight</span>(<span class="at">annual =</span> <span class="st">&quot;pesoano&quot;</span>),</span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>  <span class="at">recipes     =</span> <span class="fu">get_recipe</span>(<span class="st">&quot;ech&quot;</span>, <span class="st">&quot;2022&quot;</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="building-a-recipe-from-steps" class="section level2">
+<h2>Building a Recipe from Steps</h2>
+<p>The most common workflow consists of developing transformations
+interactively on a survey and then converting the recorded steps into a
+recipe.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(metasurvey)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">200</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co"># Simulate survey microdata (standing in for load_survey)</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>dt <span class="ot">&lt;-</span> <span class="fu">data.table</span>(</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span>n,</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>  <span class="at">age =</span> <span class="fu">sample</span>(<span class="dv">18</span><span class="sc">:</span><span class="dv">80</span>, n, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  <span class="at">sex =</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), n, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  <span class="at">income =</span> <span class="fu">round</span>(<span class="fu">runif</span>(n, <span class="dv">5000</span>, <span class="dv">80000</span>)),</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>  <span class="at">activity =</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">6</span>), n,</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>    <span class="at">replace =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>    <span class="at">prob =</span> <span class="fu">c</span>(<span class="fl">0.55</span>, <span class="fl">0.05</span>, <span class="fl">0.05</span>, <span class="fl">0.35</span>)</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>  ),</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>  <span class="at">weight =</span> <span class="fu">round</span>(<span class="fu">runif</span>(n, <span class="fl">0.5</span>, <span class="fl">3.0</span>), <span class="dv">4</span>)</span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>)</span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>svy <span class="ot">&lt;-</span> Survey<span class="sc">$</span><span class="fu">new</span>(</span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>  <span class="at">data    =</span> dt,</span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>  <span class="at">edition =</span> <span class="st">&quot;2023&quot;</span>,</span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>  <span class="at">type    =</span> <span class="st">&quot;ech&quot;</span>,</span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a>  <span class="at">psu     =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>  <span class="at">engine  =</span> <span class="st">&quot;data.table&quot;</span>,</span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a>  <span class="at">weight  =</span> <span class="fu">add_weight</span>(<span class="at">annual =</span> <span class="st">&quot;weight&quot;</span>)</span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a>)</span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="co"># Develop transformations interactively</span></span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">step_compute</span>(svy,</span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a>  <span class="at">income_thousands =</span> income <span class="sc">/</span> <span class="dv">1000</span>,</span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a>  <span class="at">employed =</span> <span class="fu">ifelse</span>(activity <span class="sc">==</span> <span class="dv">2</span>, 1L, 0L),</span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a>  <span class="at">comment =</span> <span class="st">&quot;Income scaling and employment indicator&quot;</span></span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a>)</span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a></span>
+<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">step_recode</span>(svy, labor_status,</span>
+<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a>  activity <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="st">&quot;Employed&quot;</span>,</span>
+<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a>  activity <span class="sc">%in%</span> <span class="dv">3</span><span class="sc">:</span><span class="dv">5</span> <span class="sc">~</span> <span class="st">&quot;Unemployed&quot;</span>,</span>
+<span id="cb3-39"><a href="#cb3-39" tabindex="-1"></a>  activity <span class="sc">%in%</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span> <span class="sc">~</span> <span class="st">&quot;Inactive&quot;</span>,</span>
+<span id="cb3-40"><a href="#cb3-40" tabindex="-1"></a>  <span class="at">.default =</span> <span class="st">&quot;Other&quot;</span>,</span>
+<span id="cb3-41"><a href="#cb3-41" tabindex="-1"></a>  <span class="at">comment =</span> <span class="st">&quot;ILO labor force classification&quot;</span></span>
+<span id="cb3-42"><a href="#cb3-42" tabindex="-1"></a>)</span>
+<span id="cb3-43"><a href="#cb3-43" tabindex="-1"></a></span>
+<span id="cb3-44"><a href="#cb3-44" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">step_recode</span>(svy, age_group,</span>
+<span id="cb3-45"><a href="#cb3-45" tabindex="-1"></a>  age <span class="sc">&lt;</span> <span class="dv">25</span> <span class="sc">~</span> <span class="st">&quot;Youth&quot;</span>,</span>
+<span id="cb3-46"><a href="#cb3-46" tabindex="-1"></a>  age <span class="sc">&lt;</span> <span class="dv">45</span> <span class="sc">~</span> <span class="st">&quot;Adult&quot;</span>,</span>
+<span id="cb3-47"><a href="#cb3-47" tabindex="-1"></a>  age <span class="sc">&lt;</span> <span class="dv">65</span> <span class="sc">~</span> <span class="st">&quot;Mature&quot;</span>,</span>
+<span id="cb3-48"><a href="#cb3-48" tabindex="-1"></a>  <span class="at">.default =</span> <span class="st">&quot;Senior&quot;</span>,</span>
+<span id="cb3-49"><a href="#cb3-49" tabindex="-1"></a>  <span class="at">comment =</span> <span class="st">&quot;Standard age groups&quot;</span></span>
+<span id="cb3-50"><a href="#cb3-50" tabindex="-1"></a>)</span>
+<span id="cb3-51"><a href="#cb3-51" tabindex="-1"></a></span>
+<span id="cb3-52"><a href="#cb3-52" tabindex="-1"></a><span class="co"># Convert all steps to a recipe</span></span>
+<span id="cb3-53"><a href="#cb3-53" tabindex="-1"></a>labor_recipe <span class="ot">&lt;-</span> <span class="fu">steps_to_recipe</span>(</span>
+<span id="cb3-54"><a href="#cb3-54" tabindex="-1"></a>  <span class="at">name        =</span> <span class="st">&quot;Labor Force Indicators&quot;</span>,</span>
+<span id="cb3-55"><a href="#cb3-55" tabindex="-1"></a>  <span class="at">user        =</span> <span class="st">&quot;Research Team&quot;</span>,</span>
+<span id="cb3-56"><a href="#cb3-56" tabindex="-1"></a>  <span class="at">svy         =</span> svy,</span>
+<span id="cb3-57"><a href="#cb3-57" tabindex="-1"></a>  <span class="at">description =</span> <span class="st">&quot;Standard labor force indicators following ILO definitions&quot;</span>,</span>
+<span id="cb3-58"><a href="#cb3-58" tabindex="-1"></a>  <span class="at">steps       =</span> <span class="fu">get_steps</span>(svy),</span>
+<span id="cb3-59"><a href="#cb3-59" tabindex="-1"></a>  <span class="at">topic       =</span> <span class="st">&quot;labor&quot;</span></span>
+<span id="cb3-60"><a href="#cb3-60" tabindex="-1"></a>)</span>
+<span id="cb3-61"><a href="#cb3-61" tabindex="-1"></a></span>
+<span id="cb3-62"><a href="#cb3-62" tabindex="-1"></a>labor_recipe</span>
+<span id="cb3-63"><a href="#cb3-63" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-64"><a href="#cb3-64" tabindex="-1"></a><span class="co">#&gt; ── Recipe: Labor Force Indicators ──</span></span>
+<span id="cb3-65"><a href="#cb3-65" tabindex="-1"></a><span class="co">#&gt; Author:  Research Team</span></span>
+<span id="cb3-66"><a href="#cb3-66" tabindex="-1"></a><span class="co">#&gt; Survey:  ech / 2023</span></span>
+<span id="cb3-67"><a href="#cb3-67" tabindex="-1"></a><span class="co">#&gt; Version: 1.0.0</span></span>
+<span id="cb3-68"><a href="#cb3-68" tabindex="-1"></a><span class="co">#&gt; Topic:   labor</span></span>
+<span id="cb3-69"><a href="#cb3-69" tabindex="-1"></a><span class="co">#&gt; Description: Standard labor force indicators following ILO definitions</span></span>
+<span id="cb3-70"><a href="#cb3-70" tabindex="-1"></a><span class="co">#&gt; Certification: community</span></span>
+<span id="cb3-71"><a href="#cb3-71" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-72"><a href="#cb3-72" tabindex="-1"></a><span class="co">#&gt; ── Requires (3 variables) ──</span></span>
+<span id="cb3-73"><a href="#cb3-73" tabindex="-1"></a><span class="co">#&gt;   income, activity, age</span></span>
+<span id="cb3-74"><a href="#cb3-74" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-75"><a href="#cb3-75" tabindex="-1"></a><span class="co">#&gt; ── Pipeline (3 steps) ──</span></span>
+<span id="cb3-76"><a href="#cb3-76" tabindex="-1"></a><span class="co">#&gt;   1. [compute] -&gt; income_thousands, employed  &quot;Income scaling and employment indicator&quot;</span></span>
+<span id="cb3-77"><a href="#cb3-77" tabindex="-1"></a><span class="co">#&gt;   2. [recode] -&gt; labor_status  &quot;ILO labor force classification&quot;</span></span>
+<span id="cb3-78"><a href="#cb3-78" tabindex="-1"></a><span class="co">#&gt;   3. [recode] -&gt; age_group  &quot;Standard age groups&quot;</span></span>
+<span id="cb3-79"><a href="#cb3-79" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-80"><a href="#cb3-80" tabindex="-1"></a><span class="co">#&gt; ── Produces (4 variables) ──</span></span>
+<span id="cb3-81"><a href="#cb3-81" tabindex="-1"></a><span class="co">#&gt;   labor_status [categorical], age_group [categorical], income_thousands [numeric], employed [numeric]</span></span></code></pre></div>
+</div>
+<div id="recipe-documentation" class="section level2">
+<h2>Recipe Documentation</h2>
+<p>Every recipe can automatically generate its documentation from its
+steps. The <code>doc()</code> method returns a list with input
+variables, output variables, and the step-by-step pipeline:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>doc <span class="ot">&lt;-</span> labor_recipe<span class="sc">$</span><span class="fu">doc</span>()</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">names</span>(doc)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; [1] &quot;meta&quot;             &quot;input_variables&quot;  &quot;output_variables&quot; &quot;pipeline&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># What variables does the recipe need?</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>doc<span class="sc">$</span>input_variables</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; [1] &quot;income&quot;   &quot;activity&quot; &quot;age&quot;</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co"># What variables does it create?</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>doc<span class="sc">$</span>output_variables</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; [1] &quot;income_thousands&quot; &quot;employed&quot;         &quot;labor_status&quot;     &quot;age_group&quot;</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co"># Step-by-step pipeline</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>doc<span class="sc">$</span>pipeline</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt; [[1]]</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt; [[1]]$index</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; [1] 1</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; [[1]]$type</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; [1] &quot;compute&quot;</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; [[1]]$outputs</span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; [1] &quot;income_thousands&quot; &quot;employed&quot;        </span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; [[1]]$inputs</span></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; [1] &quot;income&quot;   &quot;activity&quot;</span></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; [[1]]$inferred_type</span></span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt; [1] &quot;numeric&quot;</span></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="co">#&gt; [[1]]$comment</span></span>
+<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Income scaling and employment indicator&quot;</span></span>
+<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a><span class="co">#&gt; [[2]]</span></span>
+<span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a><span class="co">#&gt; [[2]]$index</span></span>
+<span id="cb5-33"><a href="#cb5-33" tabindex="-1"></a><span class="co">#&gt; [1] 2</span></span>
+<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-35"><a href="#cb5-35" tabindex="-1"></a><span class="co">#&gt; [[2]]$type</span></span>
+<span id="cb5-36"><a href="#cb5-36" tabindex="-1"></a><span class="co">#&gt; [1] &quot;recode&quot;</span></span>
+<span id="cb5-37"><a href="#cb5-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-38"><a href="#cb5-38" tabindex="-1"></a><span class="co">#&gt; [[2]]$outputs</span></span>
+<span id="cb5-39"><a href="#cb5-39" tabindex="-1"></a><span class="co">#&gt; [1] &quot;labor_status&quot;</span></span>
+<span id="cb5-40"><a href="#cb5-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-41"><a href="#cb5-41" tabindex="-1"></a><span class="co">#&gt; [[2]]$inputs</span></span>
+<span id="cb5-42"><a href="#cb5-42" tabindex="-1"></a><span class="co">#&gt; [1] &quot;activity&quot;</span></span>
+<span id="cb5-43"><a href="#cb5-43" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-44"><a href="#cb5-44" tabindex="-1"></a><span class="co">#&gt; [[2]]$inferred_type</span></span>
+<span id="cb5-45"><a href="#cb5-45" tabindex="-1"></a><span class="co">#&gt; [1] &quot;categorical&quot;</span></span>
+<span id="cb5-46"><a href="#cb5-46" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-47"><a href="#cb5-47" tabindex="-1"></a><span class="co">#&gt; [[2]]$comment</span></span>
+<span id="cb5-48"><a href="#cb5-48" tabindex="-1"></a><span class="co">#&gt; [1] &quot;ILO labor force classification&quot;</span></span>
+<span id="cb5-49"><a href="#cb5-49" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-50"><a href="#cb5-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-51"><a href="#cb5-51" tabindex="-1"></a><span class="co">#&gt; [[3]]</span></span>
+<span id="cb5-52"><a href="#cb5-52" tabindex="-1"></a><span class="co">#&gt; [[3]]$index</span></span>
+<span id="cb5-53"><a href="#cb5-53" tabindex="-1"></a><span class="co">#&gt; [1] 3</span></span>
+<span id="cb5-54"><a href="#cb5-54" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-55"><a href="#cb5-55" tabindex="-1"></a><span class="co">#&gt; [[3]]$type</span></span>
+<span id="cb5-56"><a href="#cb5-56" tabindex="-1"></a><span class="co">#&gt; [1] &quot;recode&quot;</span></span>
+<span id="cb5-57"><a href="#cb5-57" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-58"><a href="#cb5-58" tabindex="-1"></a><span class="co">#&gt; [[3]]$outputs</span></span>
+<span id="cb5-59"><a href="#cb5-59" tabindex="-1"></a><span class="co">#&gt; [1] &quot;age_group&quot;</span></span>
+<span id="cb5-60"><a href="#cb5-60" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-61"><a href="#cb5-61" tabindex="-1"></a><span class="co">#&gt; [[3]]$inputs</span></span>
+<span id="cb5-62"><a href="#cb5-62" tabindex="-1"></a><span class="co">#&gt; [1] &quot;age&quot;</span></span>
+<span id="cb5-63"><a href="#cb5-63" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-64"><a href="#cb5-64" tabindex="-1"></a><span class="co">#&gt; [[3]]$inferred_type</span></span>
+<span id="cb5-65"><a href="#cb5-65" tabindex="-1"></a><span class="co">#&gt; [1] &quot;categorical&quot;</span></span>
+<span id="cb5-66"><a href="#cb5-66" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-67"><a href="#cb5-67" tabindex="-1"></a><span class="co">#&gt; [[3]]$comment</span></span>
+<span id="cb5-68"><a href="#cb5-68" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Standard age groups&quot;</span></span></code></pre></div>
+<p>This documentation is generated automatically, with no manual effort
+required.</p>
+</div>
+<div id="validation" class="section level2">
+<h2>Validation</h2>
+<p>Before applying a recipe to new data, verify that all required
+variables exist. The <code>validate()</code> method stops with a clear
+error if any dependency is missing:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>labor_recipe<span class="sc">$</span><span class="fu">validate</span>(svy)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+</div>
+<div id="applying-recipes-to-a-survey" class="section level2">
+<h2>Applying Recipes to a Survey</h2>
+<p>Attach one or more recipes to a survey and apply them with
+<code>bake_recipes()</code>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Create a fresh survey with same structure (simulating a new edition)</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">99</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>dt2 <span class="ot">&lt;-</span> <span class="fu">data.table</span>(</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">age =</span> <span class="fu">sample</span>(<span class="dv">18</span><span class="sc">:</span><span class="dv">80</span>, <span class="dv">100</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">sex =</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="dv">100</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">income =</span> <span class="fu">round</span>(<span class="fu">runif</span>(<span class="dv">100</span>, <span class="dv">5000</span>, <span class="dv">80000</span>)),</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">activity =</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">6</span>), <span class="dv">100</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>    <span class="at">replace =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>    <span class="at">prob =</span> <span class="fu">c</span>(<span class="fl">0.55</span>, <span class="fl">0.05</span>, <span class="fl">0.05</span>, <span class="fl">0.35</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  ),</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>  <span class="at">weight =</span> <span class="fu">round</span>(<span class="fu">runif</span>(<span class="dv">100</span>, <span class="fl">0.5</span>, <span class="fl">3.0</span>), <span class="dv">4</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>)</span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>svy2 <span class="ot">&lt;-</span> Survey<span class="sc">$</span><span class="fu">new</span>(</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>  <span class="at">data =</span> dt2, <span class="at">edition =</span> <span class="st">&quot;2024&quot;</span>, <span class="at">type =</span> <span class="st">&quot;ech&quot;</span>,</span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>  <span class="at">psu =</span> <span class="cn">NULL</span>, <span class="at">engine =</span> <span class="st">&quot;data.table&quot;</span>,</span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  <span class="at">weight =</span> <span class="fu">add_weight</span>(<span class="at">annual =</span> <span class="st">&quot;weight&quot;</span>)</span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>)</span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a><span class="co"># Attach and bake</span></span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>svy2 <span class="ot">&lt;-</span> <span class="fu">add_recipe</span>(svy2, labor_recipe)</span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a>svy2 <span class="ot">&lt;-</span> <span class="fu">bake_recipes</span>(svy2)</span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a></span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">get_data</span>(svy2)[, .(id, income_thousands, labor_status, age_group)], <span class="dv">5</span>)</span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt;       id income_thousands labor_status age_group</span></span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="co">#&gt;    &lt;int&gt;            &lt;num&gt;       &lt;char&gt;    &lt;char&gt;</span></span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="co">#&gt; 1:     1           47.346   Unemployed    Senior</span></span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="co">#&gt; 2:     2           28.114     Employed    Mature</span></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co">#&gt; 3:     3           43.583     Employed    Mature</span></span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co">#&gt; 4:     4           13.440   Unemployed    Mature</span></span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a><span class="co">#&gt; 5:     5           55.638     Employed    Senior</span></span></code></pre></div>
+<p>The same recipe applied to a different edition produces consistent
+results. This is how metasurvey ensures reproducibility over time.</p>
+<p>In practice, you can load a survey and apply published recipes in a
+single call:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Load ECH 2023 and apply the labor recipe from the registry (requires API)</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>ech_2023 <span class="ot">&lt;-</span> <span class="fu">load_survey</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="fu">load_survey_example</span>(<span class="st">&quot;ech&quot;</span>, <span class="st">&quot;ech_2023&quot;</span>),</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">svy_type    =</span> <span class="st">&quot;ech&quot;</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">svy_edition =</span> <span class="st">&quot;2023&quot;</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="at">svy_weight  =</span> <span class="fu">add_weight</span>(<span class="at">annual =</span> <span class="st">&quot;pesoano&quot;</span>),</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  <span class="at">recipes     =</span> <span class="fu">get_recipe</span>(<span class="st">&quot;ech&quot;</span>, <span class="st">&quot;2023&quot;</span>, <span class="at">topic =</span> <span class="st">&quot;labor_market&quot;</span>),</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>  <span class="at">bake        =</span> <span class="cn">TRUE</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="categories" class="section level2">
+<h2>Categories</h2>
+<p>Categories help organize recipes by topic:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>cats <span class="ot">&lt;-</span> <span class="fu">default_categories</span>()</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">vapply</span>(cats, <span class="cf">function</span>(c) c<span class="sc">$</span>name, <span class="fu">character</span>(<span class="dv">1</span>))</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; [1] &quot;labor_market&quot; &quot;income&quot;       &quot;education&quot;    &quot;health&quot;       &quot;demographics&quot;</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; [6] &quot;housing&quot;</span></span></code></pre></div>
+<p>Add categories to a recipe using <code>add_category()</code>:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>labor_recipe <span class="ot">&lt;-</span> <span class="fu">add_category</span>(labor_recipe, <span class="st">&quot;labor_market&quot;</span>, <span class="st">&quot;Labor market analysis&quot;</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>labor_recipe <span class="ot">&lt;-</span> <span class="fu">add_category</span>(labor_recipe, <span class="st">&quot;income&quot;</span>, <span class="st">&quot;Income-related indicators&quot;</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>labor_recipe</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co">#&gt; ── Recipe: Labor Force Indicators ──</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co">#&gt; Author:  Research Team</span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt; Survey:  ech / 2023</span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt; Version: 1.0.0</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt; Topic:   labor</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt; Description: Standard labor force indicators following ILO definitions</span></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt; Certification: community</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt; Categories: labor_market, income</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#&gt; ── Requires (3 variables) ──</span></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co">#&gt;   income, activity, age</span></span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a><span class="co">#&gt; ── Pipeline (3 steps) ──</span></span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a><span class="co">#&gt;   1. [compute] -&gt; income_thousands, employed  &quot;Income scaling and employment indicator&quot;</span></span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a><span class="co">#&gt;   2. [recode] -&gt; labor_status  &quot;ILO labor force classification&quot;</span></span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a><span class="co">#&gt;   3. [recode] -&gt; age_group  &quot;Standard age groups&quot;</span></span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a><span class="co">#&gt; ── Produces (4 variables) ──</span></span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a><span class="co">#&gt;   labor_status [categorical], age_group [categorical], income_thousands [numeric], employed [numeric]</span></span></code></pre></div>
+</div>
+<div id="certification" class="section level2">
+<h2>Certification</h2>
+<p>The certification system offers three levels of trust:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Level</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>community</code></td>
+<td>User contribution (default), no review</td>
+</tr>
+<tr class="even">
+<td><code>reviewed</code></td>
+<td>Peer-reviewed by a recognized team</td>
+</tr>
+<tr class="odd">
+<td><code>official</code></td>
+<td>Endorsed for official statistics</td>
+</tr>
+</tbody>
+</table>
+<p>Higher certification levels appear first in search results and signal
+that the recipe has been reviewed.</p>
+</div>
+<div id="publishing-and-discovering-recipes" class="section level2">
+<h2>Publishing and Discovering Recipes</h2>
+<p>The real power of recipes lies in sharing them. Every recipe you
+create can be published to the <strong>metasurvey registry</strong>,
+where other researchers can discover, reuse, and build upon your
+work.</p>
+<div id="publishing-to-the-public-registry" class="section level3">
+<h3>Publishing to the Public Registry</h3>
+<p>The recommended workflow is to publish recipes to the public API.
+Anyone can browse recipes without an account; publishing requires
+registration:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># One-time: register and authenticate</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="fu">api_register</span>(<span class="st">&quot;Your Name&quot;</span>, <span class="st">&quot;you@example.com&quot;</span>, <span class="st">&quot;password&quot;</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="fu">api_login</span>(<span class="st">&quot;you@example.com&quot;</span>, <span class="st">&quot;password&quot;</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co"># Publish your recipe (your profile is attached automatically)</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="fu">api_publish_recipe</span>(labor_recipe)</span></code></pre></div>
+<p>When authenticated, <code>api_publish_recipe()</code> attaches your
+user profile to the recipe. Other users see who published it, along with
+institutional affiliation and certification level. This builds
+accountability and trust in shared recipes.</p>
+</div>
+<div id="browsing-and-searching" class="section level3">
+<h3>Browsing and Searching</h3>
+<p>No authentication is needed to browse and download recipes:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Browse all ECH recipes</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>ech_recipes <span class="ot">&lt;-</span> <span class="fu">api_list_recipes</span>(<span class="at">survey_type =</span> <span class="st">&quot;ech&quot;</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co"># Get a specific recipe by ID</span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="fu">api_get_recipe</span>(<span class="at">id =</span> <span class="st">&quot;recipe_id_here&quot;</span>)</span></code></pre></div>
+</div>
+<div id="interactive-explorer" class="section level3">
+<h3>Interactive Explorer</h3>
+<p>The Shiny app provides a visual interface for browsing recipes and
+workflows:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">explore_recipes</span>()</span></code></pre></div>
+<p>The explorer shows recipe cards with certification badges, download
+counts, and pipeline previews. Clicking a recipe opens a detail view
+with the full pipeline, an R code snippet, and links to related
+workflows.</p>
+</div>
+<div id="private-registry-for-institutions" class="section level3">
+<h3>Private Registry for Institutions</h3>
+<p>Institutions that work with <strong>confidential or restricted-access
+surveys</strong> may need a private registry. metasurvey supports this
+via a self-hosted backend with MongoDB:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Point to your institution&#39;s private API</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">configure_api</span>(<span class="st">&quot;https://your-institution.example.com/api&quot;</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co"># From here, the workflow is identical</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="fu">api_login</span>(<span class="st">&quot;analyst@institution.edu&quot;</span>, <span class="st">&quot;password&quot;</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="fu">api_publish_recipe</span>(labor_recipe)</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="fu">api_list_recipes</span>(<span class="at">survey_type =</span> <span class="st">&quot;ech&quot;</span>)</span></code></pre></div>
+<p>See the <a href="api-database.html">API and Database</a> vignette for
+instructions on deploying the Plumber API with MongoDB for your own
+organization.</p>
+</div>
+</div>
+<div id="best-practices" class="section level2">
+<h2>Best Practices</h2>
+<ol style="list-style-type: decimal">
+<li><strong>Name recipes descriptively</strong> – include the survey
+type and topic (e.g., <code>&quot;ECH Labor Force Indicators&quot;</code>).</li>
+<li><strong>Add descriptions</strong> – document what the recipe
+computes and why.</li>
+<li><strong>Use categories and topics</strong> – make recipes easier to
+discover.</li>
+<li><strong>Validate before sharing</strong> – call
+<code>validate()</code> on sample data to ensure all dependencies
+exist.</li>
+<li><strong>Version your recipes</strong> – use
+<code>set_version()</code> when updating them.</li>
+</ol>
+</div>
+<div id="next-steps" class="section level2">
+<h2>Next Steps</h2>
+<ul>
+<li><strong><a href="workflows-and-estimation.html">Estimation
+Workflows</a></strong> – Use <code>workflow()</code> to compute weighted
+estimates from processed data</li>
+<li><strong><a href="ech-case-study.html">ECH Case Study</a></strong> –
+See recipes in action in a real labor market analysis</li>
+<li><strong><a href="getting-started.html">Getting Started</a></strong>
+– Review the basics of steps and Survey objects</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Building an ECH Demographics Recipe</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Building an ECH Demographics Recipe</h1>
+
+
+
+<div id="two-paths-transpile-fast-or-build-right" class="section level2">
+<h2>Two paths: transpile fast or build right</h2>
+<p>metasurvey offers two ways to create recipes from existing STATA
+code:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Transpile automatically</strong> with
+<code>transpile_stata()</code> – converts <code>.do</code> files to
+recipes in seconds. Great for migrating legacy code quickly (see
+<code>vignette(&quot;stata-transpiler&quot;)</code>).</li>
+<li><strong>Build from scratch</strong> in R – more work upfront, but
+the result is cleaner, uses proper R idioms, and you control every
+detail.</li>
+</ol>
+<p>The transpiler is a pragmatic shortcut: it reads hundreds of lines of
+STATA and produces a working recipe, but the output inherits the
+original code’s structure – long <code>gen</code>/<code>replace</code>
+chains become long <code>step_recode</code> calls, temporary variables
+survive, and STATA-specific patterns (like <code>mvencode</code>) get
+translated literally rather than rethought.</p>
+<p>A hand-crafted recipe, on the other hand, lets you <strong>redesign
+the logic</strong> in R from the ground up. You pick meaningful variable
+names, combine related transformations into a single step, and skip
+intermediate variables that only existed because STATA needed them. The
+result is shorter, easier to read, and easier to maintain.</p>
+<p>This vignette builds a demographics recipe from scratch in about 20
+lines of R. A transpiled version of the same pipeline would take 80+
+steps and carry over variable names like <code>bc_pe2</code> and
+<code>bc_pe3</code> that mean nothing outside the original
+<code>.do</code> file.</p>
+</div>
+<div id="setting-up-the-survey" class="section level2">
+<h2>Setting up the survey</h2>
+<p>We start with an empty Survey object. This declares the survey type
+and edition without loading any data yet – the recipe will work on
+whatever data we feed it later.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(metasurvey)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">survey_empty</span>(<span class="at">type =</span> <span class="st">&quot;ech&quot;</span>, <span class="at">edition =</span> <span class="st">&quot;2023&quot;</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>svy</span></code></pre></div>
+<p>Now let’s attach some sample data. In production this would come from
+<code>anda_download_microdata(&quot;2023&quot;)</code> or a local file; here we
+simulate it.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">200</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>dt <span class="ot">&lt;-</span> data.table<span class="sc">::</span><span class="fu">data.table</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">id       =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">50</span>, <span class="at">each =</span> <span class="dv">4</span>),</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">nper     =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">50</span>),</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="at">pesoano  =</span> <span class="fu">runif</span>(n, <span class="dv">50</span>, <span class="dv">300</span>),</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="at">e26      =</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, n, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="at">e27      =</span> <span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">90</span>, n, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  <span class="at">e30      =</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>, n, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="at">e51_2    =</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">6</span>, <span class="sc">-</span><span class="dv">9</span>), n, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  <span class="at">region_4 =</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, n, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>)</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>svy <span class="ot">&lt;-</span> svy <span class="sc">|&gt;</span> <span class="fu">set_data</span>(dt)</span></code></pre></div>
+</div>
+<div id="building-the-pipeline" class="section level2">
+<h2>Building the pipeline</h2>
+<p>Every transformation is a <strong>step</strong>. By default, steps
+are <strong>lazy</strong>: they record what to do without executing it.
+This lets you inspect and modify the pipeline before materializing the
+results.</p>
+<p>Compare this with the transpiler approach:
+<code>transpile_stata()</code> would produce one step per STATA command,
+faithfully preserving every <code>gen</code> and <code>replace</code>.
+Here we think in terms of the <em>output variables</em> we want, not the
+commands we need to type.</p>
+<div id="rename-identifiers" class="section level3">
+<h3>Rename identifiers</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>svy <span class="ot">&lt;-</span> svy <span class="sc">|&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="fu">step_rename</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>    <span class="at">hh_id =</span> <span class="st">&quot;id&quot;</span>, <span class="at">person_id =</span> <span class="st">&quot;nper&quot;</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>    <span class="at">comment =</span> <span class="st">&quot;Standardize identifiers&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  )</span></code></pre></div>
+<p>Nothing happened to the data yet:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">names</span>(<span class="fu">get_data</span>(svy))[<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>]</span></code></pre></div>
+<p>The original column names are still there because the step is
+pending. Let’s keep adding steps.</p>
+</div>
+<div id="recode-sex" class="section level3">
+<h3>Recode sex</h3>
+<p>In STATA this would be a <code>gen</code> + <code>replace</code> +
+<code>replace</code> sequence (3 commands). With
+<code>step_recode</code> it’s a single, declarative mapping that
+produces human-readable labels:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>svy <span class="ot">&lt;-</span> svy <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="fu">step_recode</span>(sex,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>    e26 <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">&quot;Male&quot;</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>    e26 <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="st">&quot;Female&quot;</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>    <span class="at">.default =</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>    <span class="at">comment =</span> <span class="st">&quot;Sex from e26&quot;</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+<div id="age-groups" class="section level3">
+<h3>Age groups</h3>
+<p>The STATA equivalent uses five <code>replace</code> lines with
+<code>inrange()</code>. Here we write the same logic as a single recode
+with readable conditions:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>svy <span class="ot">&lt;-</span> svy <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">step_recode</span>(age_group,</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>    e27 <span class="sc">&gt;=</span> <span class="dv">0</span> <span class="sc">&amp;</span> e27 <span class="sc">&lt;=</span> <span class="dv">13</span> <span class="sc">~</span> <span class="st">&quot;Child&quot;</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>    e27 <span class="sc">&gt;=</span> <span class="dv">14</span> <span class="sc">&amp;</span> e27 <span class="sc">&lt;=</span> <span class="dv">17</span> <span class="sc">~</span> <span class="st">&quot;Adolescent&quot;</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>    e27 <span class="sc">&gt;=</span> <span class="dv">18</span> <span class="sc">&amp;</span> e27 <span class="sc">&lt;=</span> <span class="dv">29</span> <span class="sc">~</span> <span class="st">&quot;Young adult&quot;</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>    e27 <span class="sc">&gt;=</span> <span class="dv">30</span> <span class="sc">&amp;</span> e27 <span class="sc">&lt;=</span> <span class="dv">64</span> <span class="sc">~</span> <span class="st">&quot;Adult&quot;</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>    e27 <span class="sc">&gt;=</span> <span class="dv">65</span> <span class="sc">~</span> <span class="st">&quot;Elderly&quot;</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>    <span class="at">.default =</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>    <span class="at">comment =</span> <span class="st">&quot;Age groups from e27&quot;</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+<div id="relationship-to-head-of-household" class="section level3">
+<h3>Relationship to head of household</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>svy <span class="ot">&lt;-</span> svy <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="fu">step_recode</span>(relationship,</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>    e30 <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">&quot;Head&quot;</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>    e30 <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="st">&quot;Spouse&quot;</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>    e30 <span class="sc">&gt;=</span> <span class="dv">3</span> <span class="sc">&amp;</span> e30 <span class="sc">&lt;=</span> <span class="dv">5</span> <span class="sc">~</span> <span class="st">&quot;Child&quot;</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>    e30 <span class="sc">==</span> <span class="dv">6</span> <span class="sc">~</span> <span class="st">&quot;Other relative&quot;</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>    e30 <span class="sc">==</span> <span class="dv">7</span> <span class="sc">~</span> <span class="st">&quot;Non-relative&quot;</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>    <span class="at">.default =</span> <span class="st">&quot;Unknown&quot;</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>    <span class="at">comment =</span> <span class="st">&quot;Relationship from e30&quot;</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+<div id="education-level" class="section level3">
+<h3>Education level</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>svy <span class="ot">&lt;-</span> svy <span class="sc">|&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="fu">step_recode</span>(edu_level,</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>    e51_2 <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">&quot;None&quot;</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>    e51_2 <span class="sc">&gt;=</span> <span class="dv">1</span> <span class="sc">&amp;</span> e51_2 <span class="sc">&lt;=</span> <span class="dv">2</span> <span class="sc">~</span> <span class="st">&quot;Primary&quot;</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>    e51_2 <span class="sc">&gt;=</span> <span class="dv">3</span> <span class="sc">&amp;</span> e51_2 <span class="sc">&lt;=</span> <span class="dv">4</span> <span class="sc">~</span> <span class="st">&quot;Secondary&quot;</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>    e51_2 <span class="sc">&gt;=</span> <span class="dv">5</span> <span class="sc">&amp;</span> e51_2 <span class="sc">&lt;=</span> <span class="dv">6</span> <span class="sc">~</span> <span class="st">&quot;Tertiary&quot;</span>,</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>    <span class="at">.default =</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>    <span class="at">comment =</span> <span class="st">&quot;Education level from e51_2&quot;</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+<div id="geographic-area" class="section level3">
+<h3>Geographic area</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>svy <span class="ot">&lt;-</span> svy <span class="sc">|&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="fu">step_recode</span>(area,</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>    region_4 <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">&quot;Montevideo&quot;</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>    region_4 <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="st">&quot;Urban &gt;5k&quot;</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>    region_4 <span class="sc">==</span> <span class="dv">3</span> <span class="sc">~</span> <span class="st">&quot;Urban &lt;5k&quot;</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>    region_4 <span class="sc">==</span> <span class="dv">4</span> <span class="sc">~</span> <span class="st">&quot;Rural&quot;</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>    <span class="at">.default =</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>    <span class="at">comment =</span> <span class="st">&quot;Geographic area from region_4&quot;</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  )</span></code></pre></div>
+<p>Notice that all our output variables have <strong>meaningful
+labels</strong> instead of numeric codes. A transpiled recipe would keep
+the original integer codes (1, 2, 3…) because that’s what the STATA code
+used. Building from scratch lets you choose the representation that
+makes analysis easier.</p>
+</div>
+<div id="remove-raw-variables" class="section level3">
+<h3>Remove raw variables</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>svy <span class="ot">&lt;-</span> svy <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="fu">step_remove</span>(e26, e27, e30, e51_2, region_4,</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>    <span class="at">comment =</span> <span class="st">&quot;Drop raw ECH variables&quot;</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+</div>
+<div id="inspecting-the-pipeline-before-execution" class="section level2">
+<h2>Inspecting the pipeline before execution</h2>
+<p>At this point we have seven pending steps. Let’s see what was
+recorded:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">get_steps</span>(svy))</span></code></pre></div>
+<p>This is one of the key advantages of building from scratch: <strong>7
+steps that each do one clear thing</strong>. A transpiled version of the
+full IECON demographics module has 80+ steps because it preserves every
+intermediate STATA command.</p>
+<p>The pipeline is a DAG (directed acyclic graph) of transformations.
+<code>view_graph()</code> renders it as an interactive network – each
+node is a step, and edges show variable dependencies:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">view_graph</span>(svy)</span></code></pre></div>
+<p>The interactive DAG is not rendered in this vignette to keep the
+package size small. Run <code>view_graph()</code> in your R session to
+explore it. With only 7 nodes the graph is clean and navigable. Compare
+that with a transpiled recipe where the DAG can have 100+ nodes – still
+useful for auditing, but much harder to read at a glance.</p>
+<p>For static output we can inspect the step list:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="cf">for</span> (s <span class="cf">in</span> <span class="fu">get_steps</span>(svy)) {</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;[%s] %s</span><span class="sc">\n</span><span class="st">&quot;</span>, s<span class="sc">$</span>type, s<span class="sc">$</span>comment <span class="sc">%||%</span> <span class="st">&quot;&quot;</span>))</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>}</span></code></pre></div>
+</div>
+<div id="packaging-as-a-recipe-before-baking" class="section level2">
+<h2>Packaging as a recipe (before baking)</h2>
+<p>A recipe bundles the steps with metadata so anyone can reproduce the
+same pipeline on different data. We create the recipe
+<strong>before</strong> baking – the lazy steps are the pipeline:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>rec <span class="ot">&lt;-</span> <span class="fu">steps_to_recipe</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="at">name =</span> <span class="st">&quot;ECH Demographics (minimal)&quot;</span>,</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="at">user =</span> <span class="st">&quot;research_team&quot;</span>,</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  <span class="at">svy =</span> svy,</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="at">steps =</span> <span class="fu">get_steps</span>(svy),</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>  <span class="at">description =</span> <span class="fu">paste</span>(</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>    <span class="st">&quot;Harmonized demographics: sex, age group, relationship,&quot;</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>    <span class="st">&quot;education level, and geographic area.&quot;</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>  ),</span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>  <span class="at">topic =</span> <span class="st">&quot;demographics&quot;</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>)</span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a>rec</span></code></pre></div>
+<p>The recipe auto-generates documentation from the steps:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>doc <span class="ot">&lt;-</span> rec<span class="sc">$</span><span class="fu">doc</span>()</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Input variables: &quot;</span>, <span class="fu">paste</span>(doc<span class="sc">$</span>input_variables, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Output variables:&quot;</span>, <span class="fu">paste</span>(doc<span class="sc">$</span>output_variables, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Pipeline steps:  &quot;</span>, <span class="fu">length</span>(doc<span class="sc">$</span>pipeline), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+</div>
+<div id="baking-materializing-the-pipeline" class="section level2">
+<h2>Baking: materializing the pipeline</h2>
+<p>Now let’s execute the steps. <code>bake_steps()</code> runs all
+pending steps in order and returns the transformed survey:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">bake_steps</span>(svy)</span></code></pre></div>
+<p>The data has the new columns with readable labels:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">get_data</span>(svy)[, .(</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>  hh_id, person_id, sex, age_group, relationship,</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>  edu_level, area</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>)])</span></code></pre></div>
+<p>The raw variables are gone:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="st">&quot;e26&quot;</span> <span class="sc">%in%</span> <span class="fu">names</span>(<span class="fu">get_data</span>(svy))</span></code></pre></div>
+</div>
+<div id="saving-and-loading" class="section level2">
+<h2>Saving and loading</h2>
+<p>Recipes serialize to JSON for version control and sharing:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">&quot;.json&quot;</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">save_recipe</span>(rec, f)</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>rec2 <span class="ot">&lt;-</span> <span class="fu">read_recipe</span>(f)</span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>rec2<span class="sc">$</span>name</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="fu">length</span>(rec2<span class="sc">$</span>steps)</span></code></pre></div>
+<p>The JSON is human-readable and diffable in git:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">readLines</span>(f, <span class="at">n =</span> <span class="dv">15</span>), <span class="at">sep =</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+</div>
+<div id="applying-to-a-new-edition" class="section level2">
+<h2>Applying to a new edition</h2>
+<p>The same recipe works on any edition. Load the recipe from JSON,
+attach it to new data, and bake:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>rec_loaded <span class="ot">&lt;-</span> <span class="fu">read_recipe</span>(f)</span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>svy_2024 <span class="ot">&lt;-</span> <span class="fu">survey_empty</span>(<span class="at">type =</span> <span class="st">&quot;ech&quot;</span>, <span class="at">edition =</span> <span class="st">&quot;2024&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>  <span class="fu">set_data</span>(data.table<span class="sc">::</span><span class="fu">data.table</span>(</span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>    <span class="at">id       =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">30</span>, <span class="at">each =</span> <span class="dv">3</span>),</span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a>    <span class="at">nper     =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">30</span>),</span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a>    <span class="at">pesoano  =</span> <span class="fu">runif</span>(<span class="dv">90</span>, <span class="dv">50</span>, <span class="dv">300</span>),</span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a>    <span class="at">e26      =</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="dv">90</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a>    <span class="at">e27      =</span> <span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">90</span>, <span class="dv">90</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a>    <span class="at">e30      =</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>, <span class="dv">90</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a>    <span class="at">e51_2    =</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">6</span>, <span class="sc">-</span><span class="dv">9</span>), <span class="dv">90</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb22-12"><a href="#cb22-12" tabindex="-1"></a>    <span class="at">region_4 =</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">90</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb22-13"><a href="#cb22-13" tabindex="-1"></a>  )) <span class="sc">|&gt;</span></span>
+<span id="cb22-14"><a href="#cb22-14" tabindex="-1"></a>  <span class="fu">add_recipe</span>(rec_loaded) <span class="sc">|&gt;</span></span>
+<span id="cb22-15"><a href="#cb22-15" tabindex="-1"></a>  <span class="fu">bake_recipes</span>()</span>
+<span id="cb22-16"><a href="#cb22-16" tabindex="-1"></a></span>
+<span id="cb22-17"><a href="#cb22-17" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">get_data</span>(svy_2024)[, .(hh_id, person_id, sex, age_group, area)])</span></code></pre></div>
+<p>No code changes needed. The recipe encodes the <em>logic</em>, not
+the data.</p>
+</div>
+<div id="transpiler-vs-hand-crafted-when-to-use-each" class="section level2">
+<h2>Transpiler vs hand-crafted: when to use each</h2>
+<table>
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Transpiler (<code>transpile_stata()</code>)</th>
+<th>Hand-crafted recipe</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Speed</strong></td>
+<td>Seconds – instant migration</td>
+<td>Hours – requires understanding the logic</td>
+</tr>
+<tr class="even">
+<td><strong>Steps</strong></td>
+<td>80-200 per module (one per STATA line)</td>
+<td>5-20 (one per concept)</td>
+</tr>
+<tr class="odd">
+<td><strong>Variable names</strong></td>
+<td>Inherits STATA names (<code>bc_pe2</code>, <code>bc_pe3</code>)</td>
+<td>Your own names (<code>sex</code>, <code>age_group</code>)</td>
+</tr>
+<tr class="even">
+<td><strong>Labels</strong></td>
+<td>Numeric codes (<code>1</code>, <code>2</code>, <code>3</code>)</td>
+<td>Readable labels (<code>&quot;Male&quot;</code>, <code>&quot;Female&quot;</code>)</td>
+</tr>
+<tr class="odd">
+<td><strong>Readability</strong></td>
+<td>Faithful to original, verbose</td>
+<td>Clean, self-documenting</td>
+</tr>
+<tr class="even">
+<td><strong>Maintenance</strong></td>
+<td>Hard to modify individual steps</td>
+<td>Easy to change any mapping</td>
+</tr>
+<tr class="odd">
+<td><strong>DAG visualization</strong></td>
+<td>Large, hard to read</td>
+<td>Compact, meaningful nodes</td>
+</tr>
+<tr class="even">
+<td><strong>Best for</strong></td>
+<td>Migrating legacy code fast</td>
+<td>New projects, critical pipelines</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommended workflow</strong>: use
+<code>transpile_stata()</code> to migrate your existing <code>.do</code>
+files immediately so you have a working baseline. Then gradually replace
+transpiled recipes with hand-crafted ones as you review each module. The
+transpiled version keeps you running; the hand-crafted version is where
+you want to end up.</p>
+</div>
+<div id="what-metasurvey-gives-you" class="section level2">
+<h2>What metasurvey gives you</h2>
+<table>
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Manual STATA scripts</th>
+<th>metasurvey recipe</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Copy-paste <code>.do</code> files per year</td>
+<td>One recipe, any edition</td>
+</tr>
+<tr class="even">
+<td>Undocumented variable names</td>
+<td>Auto-generated input/output docs</td>
+</tr>
+<tr class="odd">
+<td>No dependency tracking</td>
+<td>DAG visualization with <code>view_graph()</code></td>
+</tr>
+<tr class="even">
+<td>Flat scripts, no validation</td>
+<td><code>validate()</code> checks required variables</td>
+</tr>
+<tr class="odd">
+<td>Email <code>.do</code> files to colleagues</td>
+<td><code>publish_recipe()</code> to shared registry</td>
+</tr>
+<tr class="even">
+<td>Re-run entire script to test</td>
+<td>Lazy steps: inspect before baking</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="next-steps" class="section level2">
+<h2>Next steps</h2>
+<ul>
+<li><strong>Add more variables</strong>: income, labor force status,
+housing conditions – each can be a separate recipe with
+<code>depends_on_recipes</code></li>
+<li><strong>Certify your recipe</strong>: use
+<code>certify_recipe()</code> to mark it as reviewed or official</li>
+<li><strong>Publish</strong>: <code>publish_recipe(rec)</code> uploads
+to the shared registry where others can find it with
+<code>search_recipes(topic = &quot;demographics&quot;)</code></li>
+<li><strong>Start from STATA</strong>: if you already have
+<code>.do</code> files, use <code>transpile_stata()</code> to generate a
+working baseline immediately – see
+<code>vignette(&quot;stata-transpiler&quot;)</code> – then refine the output into
+a hand-crafted recipe like the one in this vignette</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

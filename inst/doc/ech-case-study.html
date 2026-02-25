@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>ECH Case Study: From STATA to R</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">ECH Case Study: From STATA to R</h1>
+
+
+
+<div id="the-ech-harmonization-problem" class="section level2">
+<h2>The ECH harmonization problem</h2>
+<p>Uruguay’s <em>Encuesta Continua de Hogares</em> (ECH) is published
+annually by the Instituto Nacional de Estadistica (INE). Over the years,
+the INE has changed variable names, codebook definitions, and module
+structure across editions. Researchers working with ECH data must
+<em>harmonize</em> variables —that is, map different naming conventions
+to a common schema— before any cross-year analysis is possible.</p>
+<p>ECH harmonization has historically been carried out by the Instituto
+de Economia (IECON) at the Universidad de la Republica. The resulting
+dataset is available at <a href="https://fcea.udelar.edu.uy/portada-ech-compatibilizadas.html">FCEA
+- ECH Compatibilizadas</a> (Instituto de Economia, 2020). metasurvey
+aims to complement and facilitate this kind of work by providing
+reproducible tools in R.</p>
+<p>In Uruguayan academia, this work has been done in STATA for over 30
+years. A typical harmonization pipeline consists of approximately
+<strong>8 .do files per year</strong>, covering:</p>
+<ol style="list-style-type: decimal">
+<li><code>2_correc_datos.do</code> – Raw data loading, merging person
+and household files, variable name corrections</li>
+<li><code>3_compatibilizacion_mod_1_4.do</code> – Harmonization of
+demographic, health, education, and labor modules</li>
+<li><code>4_ingreso_ht11.do</code> – Household income construction
+(<code>ht11</code>)</li>
+<li><code>5_descomp_fuentes.do</code> – Income decomposition by
+source</li>
+<li><code>6_ingreso_ht11_sss.do</code> – Social security
+adjustments</li>
+<li><code>7_check_ingr.do</code> – Income variable validation</li>
+<li><code>8_arregla_base_comp.do</code> – Final dataset preparation</li>
+<li><code>9_labels.do</code> – Value label application</li>
+</ol>
+<p>Multiplied over 30+ years, that means over <strong>240 STATA
+scripts</strong> doing essentially the same task: mapping raw ECH
+variables to a common schema.</p>
+<p><strong>metasurvey solves this with recipes.</strong> Instead of
+maintaining hundreds of <code>.do</code> files, you write a single
+recipe that encodes the transformation logic and can be applied to any
+ECH edition.</p>
+</div>
+<div id="stata-vs-metasurvey-side-by-side-comparison" class="section level2">
+<h2>STATA vs metasurvey: Side-by-side comparison</h2>
+<p>Below is a snippet from a typical STATA harmonization script for sex,
+age, and relationship to head of household:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>* <span class="kw">STATA</span>: Typical ECH compatibility script</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>* sexo</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>g bc_pe2 = e26</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>* edad</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>g bc_pe3 = e27</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>* parentesco (e30 <span class="kw">in</span> ECH 2023, was e31 <span class="kw">in</span> earlier editions)</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>g bc_pe4 = -9</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>  <span class="kw">replace</span> bc_pe4 = 1 <span class="kw">if</span> e30 == 1</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>  <span class="kw">replace</span> bc_pe4 = 2 <span class="kw">if</span> e30 == 2</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>  <span class="kw">replace</span> bc_pe4 = 3 <span class="kw">if</span> e30 == 3 | e30 == 4 | e30 == 5</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>  <span class="kw">replace</span> bc_pe4 = 4 <span class="kw">if</span> e30 == 7 | e30 == 8</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>  <span class="kw">replace</span> bc_pe4 = 5 <span class="kw">if</span> e30 == 6 | e30 == 9 | e30 == 10 | e30 == 11 | e30 == 12</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>  <span class="kw">replace</span> bc_pe4 = 6 <span class="kw">if</span> e30 == 13</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>  <span class="kw">replace</span> bc_pe4 = 7 <span class="kw">if</span> e30 == 14</span></code></pre></div>
+<p>The metasurvey equivalent:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">step_rename</span>(svy, <span class="at">sex =</span> e26, <span class="at">age =</span> e27)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">step_recode</span>(svy, relationship,</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  e30 <span class="sc">==</span> <span class="dv">1</span>                <span class="sc">~</span> <span class="st">&quot;Head&quot;</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  e30 <span class="sc">==</span> <span class="dv">2</span>                <span class="sc">~</span> <span class="st">&quot;Spouse&quot;</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  e30 <span class="sc">%in%</span> <span class="dv">3</span><span class="sc">:</span><span class="dv">5</span>            <span class="sc">~</span> <span class="st">&quot;Child&quot;</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  e30 <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">7</span>, <span class="dv">8</span>)        <span class="sc">~</span> <span class="st">&quot;Parent&quot;</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  e30 <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">9</span><span class="sc">:</span><span class="dv">12</span>)     <span class="sc">~</span> <span class="st">&quot;Other relative&quot;</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  e30 <span class="sc">==</span> <span class="dv">13</span>               <span class="sc">~</span> <span class="st">&quot;Domestic service&quot;</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  e30 <span class="sc">==</span> <span class="dv">14</span>               <span class="sc">~</span> <span class="st">&quot;Non-relative&quot;</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  <span class="at">.default =</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>  <span class="at">comment =</span> <span class="st">&quot;Relationship to head of household&quot;</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>)</span></code></pre></div>
+<p>Key differences:</p>
+<table>
+<colgroup>
+<col width="18%" />
+<col width="38%" />
+<col width="43%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Aspect</th>
+<th>STATA <code>.do</code> file</th>
+<th>metasurvey recipe</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Format</td>
+<td>Flat script with hard-coded paths</td>
+<td>Portable JSON with metadata</td>
+</tr>
+<tr class="even">
+<td>Validation</td>
+<td>Manual checks with <code>assert</code></td>
+<td>Automatic <code>validate()</code> method</td>
+</tr>
+<tr class="odd">
+<td>Documentation</td>
+<td>In-code comments</td>
+<td>Auto-generated <code>doc()</code> method</td>
+</tr>
+<tr class="even">
+<td>Sharing</td>
+<td>Copy files via email/server</td>
+<td>Registry with search and versioning</td>
+</tr>
+<tr class="odd">
+<td>Reproducibility</td>
+<td>Depends on file paths and environment</td>
+<td>Self-contained, any machine</td>
+</tr>
+<tr class="even">
+<td>Cross-edition</td>
+<td>Duplicate script per year</td>
+<td>One recipe, multiple editions</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="loading-real-ech-microdata" class="section level2">
+<h2>Loading real ECH microdata</h2>
+<p>We use a sample of real microdata from the ECH 2023, published by the
+INE. The sample contains 200 households (~500 persons) with the key
+variables needed for labor market analysis.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(metasurvey)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co"># Load real ECH 2023 sample</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>dt <span class="ot">&lt;-</span> <span class="fu">fread</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;ech_2023_sample.csv&quot;</span>, <span class="at">package =</span> <span class="st">&quot;metasurvey&quot;</span>))</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>svy <span class="ot">&lt;-</span> Survey<span class="sc">$</span><span class="fu">new</span>(</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">data    =</span> dt,</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="at">edition =</span> <span class="st">&quot;2023&quot;</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>  <span class="at">type    =</span> <span class="st">&quot;ech&quot;</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  <span class="at">engine  =</span> <span class="st">&quot;data.table&quot;</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  <span class="at">weight  =</span> <span class="fu">add_weight</span>(<span class="at">annual =</span> <span class="st">&quot;W_ANO&quot;</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>)</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">get_data</span>(svy), <span class="dv">3</span>)</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt;       ID  nper  anio   mes region  dpto   nom_dpto   e26   e27   e30 e51_2</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt;    &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;  &lt;int&gt; &lt;int&gt;     &lt;char&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; 1: 34561     1  2023     1      1     1 Montevideo     2    26     1     6</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; 2: 34561     2  2023     1      1     1 Montevideo     2    45     7     6</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; 3: 34561     3  2023     1      1     1 Montevideo     2     7     4     1</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt;    POBPCOAC SUBEMPLEO    HT11 pobre06 W_ANO</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt;       &lt;int&gt;     &lt;int&gt;   &lt;num&gt;   &lt;int&gt; &lt;int&gt;</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; 1:        2         0 55429.6       0    57</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; 2:        4         0 55429.6       0    57</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt; 3:        1         0 55429.6       0    57</span></span></code></pre></div>
+</div>
+<div id="step-1-demographic-variables" class="section level2">
+<h2>Step 1: Demographic variables</h2>
+<p>Recode raw INE codes to readable names and recode categorical
+variables:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Recode sex from INE codes (e26: 1=Male, 2=Female)</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">step_recode</span>(svy, sex,</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  e26 <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">&quot;Male&quot;</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  e26 <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="st">&quot;Female&quot;</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">.default =</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">comment =</span> <span class="st">&quot;Sex: 1=Male, 2=Female (INE e26)&quot;</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>)</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co"># Recode age groups (standard ECH grouping, e27 = age)</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">step_recode</span>(svy, age_group,</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>  e27 <span class="sc">&lt;</span> <span class="dv">14</span> <span class="sc">~</span> <span class="st">&quot;Child (0-13)&quot;</span>,</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>  e27 <span class="sc">&lt;</span> <span class="dv">25</span> <span class="sc">~</span> <span class="st">&quot;Youth (14-24)&quot;</span>,</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>  e27 <span class="sc">&lt;</span> <span class="dv">45</span> <span class="sc">~</span> <span class="st">&quot;Adult (25-44)&quot;</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>  e27 <span class="sc">&lt;</span> <span class="dv">65</span> <span class="sc">~</span> <span class="st">&quot;Mature (45-64)&quot;</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>  <span class="at">.default =</span> <span class="st">&quot;Senior (65+)&quot;</span>,</span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>  <span class="at">.to_factor =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>  <span class="at">ordered =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>  <span class="at">comment =</span> <span class="st">&quot;Standard age groups for labor statistics&quot;</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="step-2-labor-force-classification" class="section level2">
+<h2>Step 2: Labor force classification</h2>
+<p>The <code>POBPCOAC</code> variable (Population by activity status) is
+the central labor status classification in the ECH. INE codes:</p>
+<ul>
+<li>1 = Under 14</li>
+<li>2 = Employed</li>
+<li>3-5 = Unemployed (various subcategories)</li>
+<li>6-10 = Inactive</li>
+<li>11 = Not applicable</li>
+</ul>
+<p>This replicates the standard ILO labor force framework:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">step_recode</span>(svy, labor_status,</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  POBPCOAC <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="st">&quot;Employed&quot;</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  POBPCOAC <span class="sc">%in%</span> <span class="dv">3</span><span class="sc">:</span><span class="dv">5</span> <span class="sc">~</span> <span class="st">&quot;Unemployed&quot;</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  POBPCOAC <span class="sc">%in%</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">10</span> <span class="sc">~</span> <span class="st">&quot;Inactive&quot;</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">.default =</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">comment =</span> <span class="st">&quot;ILO labor force status from POBPCOAC&quot;</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>)</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co"># Create binary indicators</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">step_compute</span>(svy,</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  <span class="at">employed =</span> <span class="fu">ifelse</span>(POBPCOAC <span class="sc">==</span> <span class="dv">2</span>, 1L, 0L),</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>  <span class="at">unemployed =</span> <span class="fu">ifelse</span>(POBPCOAC <span class="sc">%in%</span> <span class="dv">3</span><span class="sc">:</span><span class="dv">5</span>, 1L, 0L),</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>  <span class="at">active =</span> <span class="fu">ifelse</span>(POBPCOAC <span class="sc">%in%</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">5</span>, 1L, 0L),</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>  <span class="at">working_age =</span> <span class="fu">ifelse</span>(e27 <span class="sc">&gt;=</span> <span class="dv">14</span>, 1L, 0L),</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>  <span class="at">comment =</span> <span class="st">&quot;Labor force binary indicators&quot;</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="step-3-income-variables" class="section level2">
+<h2>Step 3: Income variables</h2>
+<p>Build income indicators following the standard methodology used with
+ECH data:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">step_compute</span>(svy,</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="at">income_pc =</span> HT11 <span class="sc">/</span> nper,</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">income_thousands =</span> HT11 <span class="sc">/</span> <span class="dv">1000</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">log_income =</span> <span class="fu">log</span>(HT11 <span class="sc">+</span> <span class="dv">1</span>),</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">comment =</span> <span class="st">&quot;Income transformations&quot;</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="step-4-geographic-classification" class="section level2">
+<h2>Step 4: Geographic classification</h2>
+<p>The real ECH microdata already includes <code>nom_dpto</code>
+(department name) and <code>region</code> (1-3). We demonstrate a join
+with poverty lines by region:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>poverty_lines <span class="ot">&lt;-</span> <span class="fu">data.table</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="at">region =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">poverty_line =</span> <span class="fu">c</span>(<span class="dv">19000</span>, <span class="dv">12500</span>, <span class="dv">11000</span>),</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">region_name =</span> <span class="fu">c</span>(<span class="st">&quot;Montevideo&quot;</span>, <span class="st">&quot;Interior loc. &gt;= 5000&quot;</span>, <span class="st">&quot;Interior loc. &lt; 5000&quot;</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>)</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">step_join</span>(svy,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  poverty_lines,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  <span class="at">by =</span> <span class="st">&quot;region&quot;</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  <span class="at">type =</span> <span class="st">&quot;left&quot;</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  <span class="at">comment =</span> <span class="st">&quot;Add poverty lines by region&quot;</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="building-the-recipe" class="section level2">
+<h2>Building the recipe</h2>
+<p>Convert all transformations into a portable recipe:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>ech_recipe <span class="ot">&lt;-</span> <span class="fu">steps_to_recipe</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="at">name =</span> <span class="st">&quot;ECH Labor Market Indicators&quot;</span>,</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="at">user =</span> <span class="st">&quot;Research Team&quot;</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">svy =</span> svy,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">description =</span> <span class="fu">paste</span>(</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>    <span class="st">&quot;Standard labor market indicators for the ECH.&quot;</span>,</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>    <span class="st">&quot;Includes demographic recoding, ILO labor classification,&quot;</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>    <span class="st">&quot;income transformations, and geographic joins.&quot;</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  ),</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>  <span class="at">steps =</span> <span class="fu">get_steps</span>(svy),</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>  <span class="at">topic =</span> <span class="st">&quot;labor&quot;</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>)</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>ech_recipe</span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt; ── Recipe: ECH Labor Market Indicators ──</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; Author:  Research Team</span></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt; Survey:  ech / 2023</span></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt; Version: 1.0.0</span></span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt; Topic:   labor</span></span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="co">#&gt; Description: Standard labor market indicators for the ECH. Includes demographic recoding, ILO labor classification, income transformations, and geographic joins.</span></span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt; Certification: community</span></span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt; ── Requires (6 variables) ──</span></span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt;   e26, e27, POBPCOAC, HT11, nper, region</span></span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt; ── Pipeline (6 steps) ──</span></span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt;   1. [recode] -&gt; sex  &quot;Sex: 1=Male, 2=Female (INE e26)&quot;</span></span>
+<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt;   2. [recode] -&gt; age_group  &quot;Standard age groups for labor statistics&quot;</span></span>
+<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="co">#&gt;   3. [recode] -&gt; labor_status  &quot;ILO labor force status from POBPCOAC&quot;</span></span>
+<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a><span class="co">#&gt;   4. [compute] -&gt; employed, unemployed, active, working_age  &quot;Labor force binary indicators&quot;</span></span>
+<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a><span class="co">#&gt;   5. [compute] -&gt; income_pc, income_thousands, log_income  &quot;Income transformations&quot;</span></span>
+<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a><span class="co">#&gt;   6. [step_join] -&gt; (no output)  &quot;Add poverty lines by region&quot;</span></span>
+<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a><span class="co">#&gt; ── Produces (10 variables) ──</span></span>
+<span id="cb8-36"><a href="#cb8-36" tabindex="-1"></a><span class="co">#&gt;   sex [categorical], age_group [categorical], labor_status [categorical], employed [numeric], unemployed [numeric], active [numeric], working_age [numeric], income_pc [numeric], income_thousands [numeric], log_income [numeric]</span></span></code></pre></div>
+<div id="automatic-documentation" class="section level3">
+<h3>Automatic documentation</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>doc <span class="ot">&lt;-</span> ech_recipe<span class="sc">$</span><span class="fu">doc</span>()</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co"># What variables does the recipe need?</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>doc<span class="sc">$</span>input_variables</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; [1] &quot;e26&quot;      &quot;e27&quot;      &quot;POBPCOAC&quot; &quot;HT11&quot;     &quot;nper&quot;     &quot;region&quot;</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co"># What variables does it create?</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>doc<span class="sc">$</span>output_variables</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;sex&quot;              &quot;age_group&quot;        &quot;labor_status&quot;     &quot;employed&quot;        </span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt;  [5] &quot;unemployed&quot;       &quot;active&quot;           &quot;working_age&quot;      &quot;income_pc&quot;       </span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt;  [9] &quot;income_thousands&quot; &quot;log_income&quot;</span></span></code></pre></div>
+</div>
+<div id="publishing-to-the-registry" class="section level3">
+<h3>Publishing to the registry</h3>
+<p>Publish the recipe so others can discover and reuse it:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Set up a local registry</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">set_backend</span>(<span class="st">&quot;local&quot;</span>, <span class="at">path =</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">&quot;.json&quot;</span>))</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="fu">publish_recipe</span>(ech_recipe)</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co"># Now anyone can retrieve it by ID</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="fu">get_recipe</span>(<span class="st">&quot;ech_labor&quot;</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="fu">print</span>(r)</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt; NULL</span></span></code></pre></div>
+</div>
+</div>
+<div id="estimation-with-workflow" class="section level2">
+<h2>Estimation with workflow()</h2>
+<p>Now we compute standard labor market indicators:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Mean household income</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>result_income <span class="ot">&lt;-</span> <span class="fu">workflow</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="fu">list</span>(svy),</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  survey<span class="sc">::</span><span class="fu">svymean</span>(<span class="sc">~</span>HT11, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">estimation_type =</span> <span class="st">&quot;annual&quot;</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>result_income</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="co">#&gt;                     stat    value       se         cv confint_lower</span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt;                   &lt;char&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: HT11 107869.1 3473.836 0.03220417      101060.5</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt;    confint_upper</span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;</span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt; 1:      114677.7</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Employment rate (proportion employed among total population)</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>result_employment <span class="ot">&lt;-</span> <span class="fu">workflow</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="fu">list</span>(svy),</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  survey<span class="sc">::</span><span class="fu">svymean</span>(<span class="sc">~</span>employed, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="at">estimation_type =</span> <span class="st">&quot;annual&quot;</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>)</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>result_employment</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co">#&gt;                         stat     value         se         cv confint_lower</span></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co">#&gt;                       &lt;char&gt;     &lt;num&gt;      &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: employed 0.4422188 0.02343197 0.05298728      0.396293</span></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co">#&gt;    confint_upper</span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;</span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt; 1:     0.4881447</span></span></code></pre></div>
+<div id="domain-estimation" class="section level3">
+<h3>Domain estimation</h3>
+<p>Compute estimates by subpopulation:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Mean income by region name</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>income_region <span class="ot">&lt;-</span> <span class="fu">workflow</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="fu">list</span>(svy),</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  survey<span class="sc">::</span><span class="fu">svyby</span>(<span class="sc">~</span>HT11, <span class="sc">~</span>region_name, survey<span class="sc">::</span>svymean, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="at">estimation_type =</span> <span class="st">&quot;annual&quot;</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>)</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>income_region</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co">#&gt;                                                       stat     value       se</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co">#&gt;                                                     &lt;char&gt;     &lt;num&gt;    &lt;num&gt;</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt; 1:  survey::svyby: HT11 [region_name=Interior loc. &lt; 5000]  90397.57 4632.957</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co">#&gt; 2: survey::svyby: HT11 [region_name=Interior loc. &gt;= 5000] 103877.64 5949.558</span></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="co">#&gt; 3:            survey::svyby: HT11 [region_name=Montevideo] 118302.36 5412.484</span></span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="co">#&gt;            cv confint_lower confint_upper           region_name</span></span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt;         &lt;num&gt;         &lt;num&gt;         &lt;num&gt;                &lt;char&gt;</span></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt; 1: 0.05125091      81317.14       99478.0  Interior loc. &lt; 5000</span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt; 2: 0.05727467      92216.72      115538.6 Interior loc. &gt;= 5000</span></span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt; 3: 0.04575127     107694.09      128910.6            Montevideo</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Employment by sex</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>employment_sex <span class="ot">&lt;-</span> <span class="fu">workflow</span>(</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="fu">list</span>(svy),</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  survey<span class="sc">::</span><span class="fu">svyby</span>(<span class="sc">~</span>employed, <span class="sc">~</span>sex, survey<span class="sc">::</span>svymean, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="at">estimation_type =</span> <span class="st">&quot;annual&quot;</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>)</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>employment_sex</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt;                                    stat     value         se         cv</span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt;                                  &lt;char&gt;     &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svyby: employed [sex=Female] 0.3824018 0.03146234 0.08227562</span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt; 2:   survey::svyby: employed [sex=Male] 0.5076963 0.03449008 0.06793446</span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt;    confint_lower confint_upper    sex</span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;         &lt;num&gt; &lt;char&gt;</span></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#&gt; 1:     0.3207367     0.4440669 Female</span></span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&gt; 2:     0.4400970     0.5752956   Male</span></span></code></pre></div>
+</div>
+<div id="quality-assessment" class="section level3">
+<h3>Quality assessment</h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>results_all <span class="ot">&lt;-</span> <span class="fu">workflow</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>  <span class="fu">list</span>(svy),</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  survey<span class="sc">::</span><span class="fu">svymean</span>(<span class="sc">~</span>HT11, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>  survey<span class="sc">::</span><span class="fu">svymean</span>(<span class="sc">~</span>employed, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>  <span class="at">estimation_type =</span> <span class="st">&quot;annual&quot;</span></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>)</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(results_all))) {</span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a>  cv_pct <span class="ot">&lt;-</span> results_all<span class="sc">$</span>cv[i] <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>  <span class="fu">cat</span>(</span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>    results_all<span class="sc">$</span>stat[i], <span class="st">&quot;:&quot;</span>,</span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a>    <span class="fu">round</span>(cv_pct, <span class="dv">1</span>), <span class="st">&quot;% CV -&quot;</span>,</span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a>    <span class="fu">evaluate_cv</span>(cv_pct), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span></span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a>  )</span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a>}</span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a><span class="co">#&gt; survey::svymean: HT11 : 3.2 % CV - Excellent </span></span>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a><span class="co">#&gt; survey::svymean: employed : 5.3 % CV - Very good</span></span></code></pre></div>
+</div>
+</div>
+<div id="reproducibility-same-recipe-different-edition" class="section level2">
+<h2>Reproducibility: same recipe, different edition</h2>
+<p>The power of recipes lies in applying them unchanged to new data. In
+a real workflow, you would load a different edition of the ECH and apply
+the same recipe:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Load ECH 2024 microdata (requires external data file)</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>svy_2024 <span class="ot">&lt;-</span> <span class="fu">load_survey</span>(</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  <span class="at">path =</span> <span class="st">&quot;ECH_2024.csv&quot;</span>,</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="at">type =</span> <span class="st">&quot;ech&quot;</span>, <span class="at">edition =</span> <span class="st">&quot;2024&quot;</span>,</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>  <span class="at">weight =</span> <span class="fu">add_weight</span>(<span class="at">annual =</span> <span class="st">&quot;W_ANO&quot;</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>)</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a><span class="co"># Apply the exact same recipe</span></span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>svy_2024 <span class="ot">&lt;-</span> <span class="fu">add_recipe</span>(svy_2024, ech_recipe)</span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a>svy_2024 <span class="ot">&lt;-</span> <span class="fu">bake_recipes</span>(svy_2024)</span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a></span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a><span class="co"># Estimate with consistent methodology</span></span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a>result_2024 <span class="ot">&lt;-</span> <span class="fu">workflow</span>(</span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a>  <span class="fu">list</span>(svy_2024),</span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a>  survey<span class="sc">::</span><span class="fu">svymean</span>(<span class="sc">~</span>HT11, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a>  survey<span class="sc">::</span><span class="fu">svymean</span>(<span class="sc">~</span>employed, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a>  <span class="at">estimation_type =</span> <span class="st">&quot;annual&quot;</span></span>
+<span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a>)</span></code></pre></div>
+<p>Same recipe, different data, consistent methodology.</p>
+</div>
+<div id="for-stata-users-quick-reference" class="section level2">
+<h2>For STATA users: quick reference</h2>
+<p>If you are transitioning from STATA to R for survey analysis, here is
+a mapping of common operations:</p>
+<table>
+<colgroup>
+<col width="28%" />
+<col width="44%" />
+<col width="28%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>STATA</th>
+<th>metasurvey</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>gen var = expr</code></td>
+<td><code>step_compute(svy, var = expr)</code></td>
+<td>Lazy by default; call <code>bake_steps()</code> to execute</td>
+</tr>
+<tr class="even">
+<td><code>replace var = x if cond</code></td>
+<td><code>step_compute(svy, var = ifelse(cond, x, var))</code></td>
+<td>Conditional assignment</td>
+</tr>
+<tr class="odd">
+<td><code>recode var (old=new)</code></td>
+<td><code>step_recode(svy, new_var, old == val ~ &quot;label&quot;)</code></td>
+<td>Creates a new variable</td>
+</tr>
+<tr class="even">
+<td><code>rename old new</code></td>
+<td><code>step_rename(svy, new = old)</code></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>drop var1 var2</code></td>
+<td><code>step_remove(svy, var1, var2)</code></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>merge using file</code></td>
+<td><code>step_join(svy, data, by = &quot;key&quot;)</code></td>
+<td>Left join by default</td>
+</tr>
+<tr class="odd">
+<td><code>svy: mean var</code></td>
+<td><code>workflow(list(svy), svymean(~var))</code></td>
+<td>Returns data.table with SE, CV</td>
+</tr>
+<tr class="even">
+<td><code>svy: total var</code></td>
+<td><code>workflow(list(svy), svytotal(~var))</code></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>svy: mean var, over(group)</code></td>
+<td><code>workflow(list(svy), svyby(~var, ~group, svymean))</code></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>.do</code> file</td>
+<td><code>steps_to_recipe()</code> + publish</td>
+<td>Portable, discoverable, version-controlled</td>
+</tr>
+<tr class="odd">
+<td><code>use &quot;data.dta&quot;</code></td>
+<td><code>load_survey(path = &quot;data.dta&quot;)</code></td>
+<td>Reads STATA, CSV, RDS, etc.</td>
+</tr>
+</tbody>
+</table>
+<div id="key-differences" class="section level3">
+<h3>Key differences</h3>
+<ol style="list-style-type: decimal">
+<li><p><strong>Lazy evaluation</strong>: In STATA, commands execute
+immediately. In metasurvey, steps are recorded and executed together
+with <code>bake_steps()</code>. This enables validation and optimization
+before execution.</p></li>
+<li><p><strong>Immutability</strong>: metasurvey creates new variables
+instead of modifying existing ones. <code>step_recode()</code> creates a
+new column; it does not overwrite the source variable.</p></li>
+<li><p><strong>Design awareness</strong>: Survey weights and design are
+attached to the <code>Survey</code> object. There is no need to prefix
+commands with <code>svy:</code> or remember to set up the design
+—<code>workflow()</code> handles it automatically.</p></li>
+<li><p><strong>Recipes vs .do files</strong>: Recipes are
+self-documenting (via <code>doc()</code>), self-validating (via
+<code>validate()</code>), and discoverable (via the registry). A
+<code>.do</code> file is just a script; a recipe is a structured,
+portable object.</p></li>
+</ol>
+</div>
+</div>
+<div id="data-and-acknowledgments" class="section level2">
+<h2>Data and acknowledgments</h2>
+<p>The sample data used in this vignette comes from the <em>Encuesta
+Continua de Hogares</em> (ECH) 2023, published by Uruguay’s Instituto
+Nacional de Estadistica (INE). The full microdata is available at <a href="https://www.gub.uy/instituto-nacional-estadistica/">INE</a>.</p>
+<p>The <strong><a href="https://calcita.github.io/ech/">ech</a></strong>
+package by Gabriela Mathieu and Richard Detomasi was an important
+inspiration for metasurvey. While <code>ech</code> provides ready-to-use
+functions for computing ECH indicators, metasurvey takes a different
+approach: it lets users define, share, and reproduce their own
+processing pipelines as recipes.</p>
+</div>
+<div id="next-steps" class="section level2">
+<h2>Next steps</h2>
+<ul>
+<li><strong><a href="recipes.html">Creating and publishing
+recipes</a></strong> – Learn about recipe registries, certification, and
+discovery</li>
+<li><strong><a href="workflows-and-estimation.html">Estimation
+workflows</a></strong> – Deep dive into <code>workflow()</code> and
+<code>RecipeWorkflow</code></li>
+<li><strong><a href="panel-analysis.html">Rotating panels and
+PoolSurvey</a></strong> – Working with the ECH’s rotating panel
+structure</li>
+<li><strong><a href="getting-started.html">Getting started</a></strong>
+– Review the basics</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

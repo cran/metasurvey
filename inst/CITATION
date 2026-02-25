@@ -1,0 +1,12 @@
+bibentry(
+  bibtype  = "Manual",
+  title    = "metasurvey: Reproducible Survey Data Processing with Step Pipelines",
+  author   = c(
+    person("Mauro", "Loprete"),
+    person("Natalia", "da Silva"),
+    person("Fabricio", "Machado")
+  ),
+  year     = format(Sys.Date(), "%Y"),
+  url      = "https://github.com/metasurveyr/metasurvey",
+  note     = paste("R package version", meta$Version)
+)

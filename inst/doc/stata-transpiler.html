@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Transpiling STATA do-files to metasurvey Recipes</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Transpiling STATA do-files to metasurvey
+Recipes</h1>
+
+
+
+<div id="motivation" class="section level2">
+<h2>Motivation</h2>
+<p>Many Latin American research groups maintain decades of STATA
+<code>.do</code> files that process household survey microdata. These
+scripts encode institutional knowledge about variable harmonization,
+income decomposition, and indicator construction – but they are locked
+in a format that is hard to version, share, or integrate with modern R
+workflows.</p>
+<p>The <strong>metasurvey transpiler</strong> converts STATA
+<code>.do</code> files into metasurvey Recipe objects. This enables:</p>
+<ul>
+<li><strong>Reproducibility</strong>: STATA pipelines become
+version-controlled JSON recipes</li>
+<li><strong>Interoperability</strong>: the same recipe runs on any
+<code>data.table</code>-backed Survey object</li>
+<li><strong>Discovery</strong>: transpiled recipes can be published to
+the metasurvey API for other researchers to find and reuse</li>
+</ul>
+<p>The transpiler handles the most common STATA patterns found in survey
+processing scripts: variable generation, conditional replacement,
+recoding, aggregation, loops, missing-value encoding, and label
+extraction.</p>
+</div>
+<div id="quick-start" class="section level2">
+<h2>Quick start</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(metasurvey)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co"># Transpile a single .do file</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">transpile_stata</span>(<span class="st">&quot;demographics.do&quot;</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>result<span class="sc">$</span>steps[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&gt; [1] &quot;step_rename(svy, hh_id = \&quot;id\&quot;, person_id = \&quot;nper\&quot;)&quot;</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&gt; [2] &quot;step_compute(svy, weight_yr = pesoano)&quot;</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&gt; [3] &quot;step_compute(svy, sex = e26)&quot;</span></span></code></pre></div>
+<p>The result is a list with four elements:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Element</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>steps</code></td>
+<td>Character vector of metasurvey step calls</td>
+</tr>
+<tr class="even">
+<td><code>labels</code></td>
+<td>Variable and value labels extracted from the <code>.do</code>
+file</td>
+</tr>
+<tr class="odd">
+<td><code>warnings</code></td>
+<td>Any commands that required manual review</td>
+</tr>
+<tr class="even">
+<td><code>stats</code></td>
+<td>Counts of translated, skipped, and manual-review commands</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="transpilation-pipeline" class="section level2">
+<h2>Transpilation pipeline</h2>
+<p>The transpiler works in four passes:</p>
+<pre><code>  .do file
+     |
+     v
+  [1] parse_do_file()      -- tokenize lines into command objects
+     |
+     v
+  [2] translate_commands()  -- map each STATA command to metasurvey steps
+     |
+     v
+  [3] optimize_steps()      -- consolidate consecutive renames, drops, etc.
+     |
+     v
+  [4] Recipe / JSON         -- bundle steps with metadata</code></pre>
+<div id="pass-1-parsing" class="section level3">
+<h3>Pass 1: Parsing</h3>
+<p><code>parse_do_file()</code> reads a <code>.do</code> file and
+produces a list of command objects. It handles:</p>
+<ul>
+<li><strong>Comment stripping</strong>: <code>*</code>, <code>//</code>,
+and <code>/* */</code> block comments</li>
+<li><strong>Line continuation</strong>: <code>///</code> and
+<code>/* */</code> used as continuation markers</li>
+<li><strong>Loop expansion</strong>: <code>foreach</code> and
+<code>forvalues</code> are unrolled, substituting backtick macros
+(<code>`var&#39;</code>) with each iteration value</li>
+<li><strong>Prefix handling</strong>: <code>capture</code>,
+<code>bysort group:</code>, and command abbreviations (<code>g</code>
+for <code>gen</code>, <code>cap</code> for <code>capture</code>)</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>commands <span class="ot">&lt;-</span> <span class="fu">parse_do_file</span>(<span class="st">&quot;demographics.do&quot;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>commands[[<span class="dv">1</span>]]</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; $cmd</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; [1] &quot;gen&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; $args</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; [1] &quot;sex = e26&quot;</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; $if_clause</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; NULL</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; $by_group</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; NULL</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; $capture</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
+</div>
+<div id="pass-2-command-translation" class="section level3">
+<h3>Pass 2: Command translation</h3>
+<p>Each parsed command is mapped to one or more metasurvey step strings.
+The following table shows the supported STATA commands and their
+translations.</p>
+</div>
+</div>
+<div id="supported-patterns" class="section level2">
+<h2>Supported patterns</h2>
+<div id="gen-generate" class="section level3">
+<h3>gen / generate</h3>
+<p>Simple variable creation translates to <code>step_compute</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="kw">gen</span> sex = q01</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="kw">gen</span> is_urban = (region &lt; 3)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="kw">gen</span> <span class="kw">byte</span> age_group = -9</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">sex =</span> q01)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">is_urban =</span> (region <span class="sc">&lt;</span> <span class="dv">3</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">age_group =</span> <span class="sc">-</span>9L)</span></code></pre></div>
+<p>When a <code>gen</code> includes an <code>if</code> clause, the
+condition is wrapped in <code>fifelse</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="kw">gen</span> employed = hours_worked <span class="kw">if</span> age &gt;= 14</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">employed =</span> data.table<span class="sc">::</span><span class="fu">fifelse</span>(age <span class="sc">&gt;=</span> <span class="dv">14</span>, hours_worked, <span class="cn">NA</span>))</span></code></pre></div>
+</div>
+<div id="gen-replace-chains-the-dominant-pattern" class="section level3">
+<h3>gen + replace chains (the dominant pattern)</h3>
+<p>The most common pattern in survey <code>.do</code> files is
+initializing a variable and then filling it with conditional
+replacements:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="kw">gen</span> relationship = -9</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="kw">replace</span> relationship = 1 <span class="kw">if</span> q05 == 1</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="kw">replace</span> relationship = 2 <span class="kw">if</span> q05 == 2</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="kw">replace</span> relationship = 3 <span class="kw">if</span> <span class="fu">inrange</span>(q05, 3, 5)</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="kw">replace</span> relationship = 4 <span class="kw">if</span> q05 == 6</span></code></pre></div>
+<p>When <strong>all</strong> right-hand sides are constants, the
+transpiler emits a single <code>step_recode</code>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">step_recode</span>(svy, relationship,</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>    q05 <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> 1L,</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>    q05 <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> 2L,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>    q05 <span class="sc">&gt;=</span> <span class="dv">3</span> <span class="sc">&amp;</span> q05 <span class="sc">&lt;=</span> <span class="dv">5</span> <span class="sc">~</span> 3L,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>    q05 <span class="sc">==</span> <span class="dv">6</span> <span class="sc">~</span> 4L,</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>    <span class="at">.default =</span> <span class="sc">-</span>9L)</span></code></pre></div>
+<p>When any right-hand side is an <strong>expression</strong>, the
+transpiler emits a chain of <code>step_compute</code> with
+<code>fifelse</code>:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="kw">gen</span> labour_inc = 0</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="kw">replace</span> labour_inc = wage <span class="kw">if</span> job_type == 1</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="kw">replace</span> labour_inc = wage + bonus <span class="kw">if</span> job_type == 2</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">labour_inc =</span> 0L)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">labour_inc =</span> data.table<span class="sc">::</span><span class="fu">fifelse</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>    job_type <span class="sc">==</span> <span class="dv">1</span>, wage, labour_inc))</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">labour_inc =</span> data.table<span class="sc">::</span><span class="fu">fifelse</span>(</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>    job_type <span class="sc">==</span> <span class="dv">2</span>, wage <span class="sc">+</span> bonus, labour_inc))</span></code></pre></div>
+</div>
+<div id="recode" class="section level3">
+<h3>recode</h3>
+<p>STATA <code>recode</code> with parenthesized mappings or inline
+syntax:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="kw">recode</span> urban_filter (0=2)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="kw">recode</span> edu_level (2=2) (3=-9) (4=3) (5=4), <span class="kw">gen</span>(edu_compat)</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="kw">recode</span> var1 var2 var3 .=0</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">urban_filter =</span> data.table<span class="sc">::</span><span class="fu">fifelse</span>(</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>    urban_filter <span class="sc">==</span> <span class="dv">0</span>, <span class="dv">2</span>, urban_filter))</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">edu_compat =</span> edu_level)</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">edu_compat =</span> data.table<span class="sc">::</span><span class="fu">fifelse</span>(</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>    edu_compat <span class="sc">==</span> <span class="dv">2</span>, <span class="dv">2</span>, edu_compat))</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co"># ... one fifelse per mapping</span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co"># Multi-variable recode: one step per variable</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">var1 =</span> data.table<span class="sc">::</span><span class="fu">fifelse</span>(<span class="fu">is.na</span>(var1), <span class="dv">0</span>, var1))</span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">var2 =</span> data.table<span class="sc">::</span><span class="fu">fifelse</span>(<span class="fu">is.na</span>(var2), <span class="dv">0</span>, var2))</span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">var3 =</span> data.table<span class="sc">::</span><span class="fu">fifelse</span>(<span class="fu">is.na</span>(var3), <span class="dv">0</span>, var3))</span></code></pre></div>
+</div>
+<div id="egen-aggregation-with-by-groups" class="section level3">
+<h3>egen (aggregation with by-groups)</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="kw">bysort</span> household: <span class="kw">egen</span> hh_income = <span class="kw">sum</span>(income)</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="kw">egen</span> max_age = <span class="fu">max</span>(age), <span class="kw">by</span>(household)</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">hh_income =</span> <span class="fu">sum</span>(income, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>    <span class="at">.by =</span> <span class="st">&quot;household&quot;</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">max_age =</span> <span class="fu">max</span>(age, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>    <span class="at">.by =</span> <span class="st">&quot;household&quot;</span>)</span></code></pre></div>
+<p>Supported <code>egen</code> functions: <code>sum</code>,
+<code>max</code>, <code>min</code>, <code>mean</code>,
+<code>count</code>, <code>sd</code>, <code>median</code>,
+<code>total</code>, <code>rowtotal</code>, <code>rowmean</code>.</p>
+</div>
+<div id="foreach-loops" class="section level3">
+<h3>foreach loops</h3>
+<p>Loops are expanded during parsing. The transpiler unrolls
+<code>foreach</code> with both <code>in</code> lists and
+<code>of numlist</code> ranges, including nested loops:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="kw">foreach</span> i <span class="kw">of</span> numlist 1/4 {</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>    <span class="kw">gen</span> contrib<span class="ot">`i&#39;</span> = 0</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>    <span class="kw">replace</span> contrib<span class="ot">`i&#39;</span> = amount <span class="kw">if</span> provider == <span class="ot">`i&#39;</span></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>}</span></code></pre></div>
+<p>Expands to 4 pairs of gen+replace, each transpiled independently:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">step_recode</span>(svy, contrib1, provider <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> amount, <span class="at">.default =</span> 0L)</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="fu">step_recode</span>(svy, contrib2, provider <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> amount, <span class="at">.default =</span> 0L)</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="fu">step_recode</span>(svy, contrib3, provider <span class="sc">==</span> <span class="dv">3</span> <span class="sc">~</span> amount, <span class="at">.default =</span> 0L)</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a><span class="fu">step_recode</span>(svy, contrib4, provider <span class="sc">==</span> <span class="dv">4</span> <span class="sc">~</span> amount, <span class="at">.default =</span> 0L)</span></code></pre></div>
+</div>
+<div id="mvencode-missing-value-encoding" class="section level3">
+<h3>mvencode (missing value encoding)</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="kw">mvencode</span> income_1 income_2 income_3, mv(0)</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">income_1 =</span> data.table<span class="sc">::</span><span class="fu">fifelse</span>(</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>    <span class="fu">is.na</span>(income_1), <span class="dv">0</span>, income_1))</span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">income_2 =</span> data.table<span class="sc">::</span><span class="fu">fifelse</span>(</span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>    <span class="fu">is.na</span>(income_2), <span class="dv">0</span>, income_2))</span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">income_3 =</span> data.table<span class="sc">::</span><span class="fu">fifelse</span>(</span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a>    <span class="fu">is.na</span>(income_3), <span class="dv">0</span>, income_3))</span></code></pre></div>
+</div>
+<div id="destring" class="section level3">
+<h3>destring</h3>
+<div class="sourceCode" id="cb20"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="kw">destring</span> wage bonus, <span class="kw">replace</span> <span class="kw">force</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">wage =</span> <span class="fu">suppressWarnings</span>(</span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>    <span class="fu">as.numeric</span>(<span class="fu">as.character</span>(wage))))</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a><span class="fu">step_compute</span>(svy, <span class="at">bonus =</span> <span class="fu">suppressWarnings</span>(</span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a>    <span class="fu">as.numeric</span>(<span class="fu">as.character</span>(bonus))))</span></code></pre></div>
+</div>
+<div id="rename-drop-keep" class="section level3">
+<h3>rename, drop, keep</h3>
+<div class="sourceCode" id="cb22"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="kw">rename</span> id hh_id</span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="kw">drop</span> aux1 aux2 aux3</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">step_rename</span>(svy, <span class="at">hh_id =</span> <span class="st">&quot;id&quot;</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a><span class="fu">step_remove</span>(svy, aux1, aux2, aux3)</span></code></pre></div>
+<p>Consecutive renames are consolidated into a single
+<code>step_rename</code> call, and consecutive drops are merged into one
+<code>step_remove</code>.</p>
+</div>
+<div id="stata-expression-translation" class="section level3">
+<h3>STATA expression translation</h3>
+<p>STATA-specific syntax in expressions is automatically translated:</p>
+<table>
+<thead>
+<tr class="header">
+<th>STATA</th>
+<th>R (data.table)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>inrange(x, a, b)</code></td>
+<td><code>(x &gt;= a &amp; x &lt;= b)</code></td>
+</tr>
+<tr class="even">
+<td><code>inlist(x, 1, 2, 3)</code></td>
+<td><code>(x %in% c(1, 2, 3))</code></td>
+</tr>
+<tr class="odd">
+<td><code>var == .</code></td>
+<td><code>is.na(var)</code></td>
+</tr>
+<tr class="even">
+<td><code>var != .</code></td>
+<td><code>!is.na(var)</code></td>
+</tr>
+<tr class="odd">
+<td><code>.</code> (as value)</td>
+<td><code>NA</code></td>
+</tr>
+<tr class="even">
+<td><code>string(var)</code></td>
+<td><code>as.character(var)</code></td>
+</tr>
+<tr class="odd">
+<td><code>var[_n-1]</code></td>
+<td><code>data.table::shift(var, 1, type = &quot;lag&quot;)</code></td>
+</tr>
+<tr class="even">
+<td><code>var[_n+1]</code></td>
+<td><code>data.table::shift(var, 1, type = &quot;lead&quot;)</code></td>
+</tr>
+<tr class="odd">
+<td><code>_N</code></td>
+<td><code>.N</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="variable-ranges" class="section level3">
+<h3>Variable ranges</h3>
+<p>STATA allows variable ranges like <code>aux1-aux4</code> meaning
+<code>aux1 aux2 aux3 aux4</code>. The transpiler expands these in
+<code>drop</code>, <code>recode</code>, and <code>mvencode</code>
+commands:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="kw">drop</span> contrib1-contrib4</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="fu">step_remove</span>(svy, contrib1, contrib2, contrib3, contrib4)</span></code></pre></div>
+</div>
+<div id="labels" class="section level3">
+<h3>Labels</h3>
+<p>Variable and value labels are extracted and stored in the recipe
+metadata:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a>lab <span class="kw">var</span> sex <span class="st">&quot;Sex of respondent&quot;</span></span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>lab def sex_lbl 1 <span class="st">&quot;Male&quot;</span> 2 <span class="st">&quot;Female&quot;</span></span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a>lab val sex sex_lbl</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a>result<span class="sc">$</span>labels</span>
+<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a><span class="co">#&gt; $var_labels</span></span>
+<span id="cb27-3"><a href="#cb27-3" tabindex="-1"></a><span class="co">#&gt; $var_labels$sex</span></span>
+<span id="cb27-4"><a href="#cb27-4" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Sex of respondent&quot;</span></span>
+<span id="cb27-5"><a href="#cb27-5" tabindex="-1"></a><span class="co">#&gt;</span></span>
+<span id="cb27-6"><a href="#cb27-6" tabindex="-1"></a><span class="co">#&gt; $val_labels</span></span>
+<span id="cb27-7"><a href="#cb27-7" tabindex="-1"></a><span class="co">#&gt; $val_labels$sex</span></span>
+<span id="cb27-8"><a href="#cb27-8" tabindex="-1"></a><span class="co">#&gt; $val_labels$sex$`1`</span></span>
+<span id="cb27-9"><a href="#cb27-9" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Male&quot;</span></span>
+<span id="cb27-10"><a href="#cb27-10" tabindex="-1"></a><span class="co">#&gt; $val_labels$sex$`2`</span></span>
+<span id="cb27-11"><a href="#cb27-11" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Female&quot;</span></span></code></pre></div>
+</div>
+</div>
+<div id="skipped-commands" class="section level2">
+<h2>Skipped commands</h2>
+<p>Commands that do not modify survey data are silently skipped during
+transpilation. These include:</p>
+<ul>
+<li>I/O: <code>use</code>, <code>save</code>, <code>import</code>,
+<code>export</code>, <code>insheet</code>, <code>outsheet</code></li>
+<li>Display: <code>tabulate</code>, <code>summarize</code>,
+<code>describe</code>, <code>list</code>, <code>browse</code>,
+<code>display</code></li>
+<li>Control flow: <code>if</code>/<code>else</code>, <code>while</code>,
+<code>program</code>, <code>exit</code></li>
+<li>Settings: <code>set</code>, <code>sort</code>, <code>order</code>,
+<code>compress</code>, <code>format</code></li>
+<li>Macros: <code>global</code>, <code>local</code>,
+<code>scalar</code>, <code>matrix</code></li>
+</ul>
+<p>The <code>$stats</code> element of the result reports how many
+commands fell into each category.</p>
+</div>
+<div id="a-realistic-example" class="section level2">
+<h2>A realistic example</h2>
+<p>The following <code>.do</code> file is a simplified version of a
+typical survey demographics module. It is not a real production script,
+but it uses the same patterns found in actual ECH processing
+pipelines.</p>
+<p>Save this as <code>demo_module.do</code>:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode stata"><code class="sourceCode stata"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a>* ──────────────────────────────────────────────</span>
+<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a>* Demographics module -- simplified example</span>
+<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a>* ──────────────────────────────────────────────</span>
+<span id="cb28-4"><a href="#cb28-4" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" tabindex="-1"></a><span class="kw">rename</span> id hh_id</span>
+<span id="cb28-6"><a href="#cb28-6" tabindex="-1"></a><span class="kw">rename</span> nper person_id</span>
+<span id="cb28-7"><a href="#cb28-7" tabindex="-1"></a></span>
+<span id="cb28-8"><a href="#cb28-8" tabindex="-1"></a><span class="kw">gen</span> weight_yr = pesoano</span>
+<span id="cb28-9"><a href="#cb28-9" tabindex="-1"></a><span class="kw">gen</span> weight_qt = pesotri</span>
+<span id="cb28-10"><a href="#cb28-10" tabindex="-1"></a></span>
+<span id="cb28-11"><a href="#cb28-11" tabindex="-1"></a>* ── Sex ──</span>
+<span id="cb28-12"><a href="#cb28-12" tabindex="-1"></a><span class="kw">gen</span> sex = q01</span>
+<span id="cb28-13"><a href="#cb28-13" tabindex="-1"></a></span>
+<span id="cb28-14"><a href="#cb28-14" tabindex="-1"></a>* ── Relationship to <span class="fu">head</span> ──</span>
+<span id="cb28-15"><a href="#cb28-15" tabindex="-1"></a>g relationship = -9</span>
+<span id="cb28-16"><a href="#cb28-16" tabindex="-1"></a><span class="kw">replace</span> relationship = 1 <span class="kw">if</span> q05 == 1</span>
+<span id="cb28-17"><a href="#cb28-17" tabindex="-1"></a><span class="kw">replace</span> relationship = 2 <span class="kw">if</span> q05 == 2</span>
+<span id="cb28-18"><a href="#cb28-18" tabindex="-1"></a><span class="kw">replace</span> relationship = 3 <span class="kw">if</span> <span class="fu">inrange</span>(q05, 3, 5)</span>
+<span id="cb28-19"><a href="#cb28-19" tabindex="-1"></a><span class="kw">replace</span> relationship = 4 <span class="kw">if</span> q05 == 6</span>
+<span id="cb28-20"><a href="#cb28-20" tabindex="-1"></a><span class="kw">replace</span> relationship = 5 <span class="kw">if</span> q05 == 7</span>
+<span id="cb28-21"><a href="#cb28-21" tabindex="-1"></a></span>
+<span id="cb28-22"><a href="#cb28-22" tabindex="-1"></a>* ── Area ──</span>
+<span id="cb28-23"><a href="#cb28-23" tabindex="-1"></a><span class="kw">gen</span> area = .</span>
+<span id="cb28-24"><a href="#cb28-24" tabindex="-1"></a><span class="kw">replace</span> area = 1 <span class="kw">if</span> region == 1</span>
+<span id="cb28-25"><a href="#cb28-25" tabindex="-1"></a><span class="kw">replace</span> area = 2 <span class="kw">if</span> region == 2</span>
+<span id="cb28-26"><a href="#cb28-26" tabindex="-1"></a><span class="kw">replace</span> area = 3 <span class="kw">if</span> region == 3</span>
+<span id="cb28-27"><a href="#cb28-27" tabindex="-1"></a></span>
+<span id="cb28-28"><a href="#cb28-28" tabindex="-1"></a>* ── Education <span class="dv">level</span> (harmonized) ──</span>
+<span id="cb28-29"><a href="#cb28-29" tabindex="-1"></a><span class="kw">recode</span> q20 (2=2) (3=-9) (4=3) (5=4), <span class="kw">gen</span>(edu_compat)</span>
+<span id="cb28-30"><a href="#cb28-30" tabindex="-1"></a></span>
+<span id="cb28-31"><a href="#cb28-31" tabindex="-1"></a>* ── Household-<span class="dv">level</span> age <span class="kw">stats</span> ──</span>
+<span id="cb28-32"><a href="#cb28-32" tabindex="-1"></a><span class="kw">bysort</span> hh_id: <span class="kw">egen</span> max_age = <span class="fu">max</span>(edad)</span>
+<span id="cb28-33"><a href="#cb28-33" tabindex="-1"></a><span class="kw">bysort</span> hh_id: <span class="kw">egen</span> n_members = <span class="fu">count</span>(person_id)</span>
+<span id="cb28-34"><a href="#cb28-34" tabindex="-1"></a></span>
+<span id="cb28-35"><a href="#cb28-35" tabindex="-1"></a>* ── Initialize health insurance contributions ──</span>
+<span id="cb28-36"><a href="#cb28-36" tabindex="-1"></a><span class="kw">foreach</span> i <span class="kw">of</span> numlist 1/3 {</span>
+<span id="cb28-37"><a href="#cb28-37" tabindex="-1"></a>    <span class="kw">gen</span> contrib<span class="ot">`i&#39;</span> = 0</span>
+<span id="cb28-38"><a href="#cb28-38" tabindex="-1"></a>    <span class="kw">replace</span> contrib<span class="ot">`i&#39;</span> = amount <span class="kw">if</span> provider == <span class="ot">`i&#39;</span></span>
+<span id="cb28-39"><a href="#cb28-39" tabindex="-1"></a>}</span>
+<span id="cb28-40"><a href="#cb28-40" tabindex="-1"></a></span>
+<span id="cb28-41"><a href="#cb28-41" tabindex="-1"></a>* ── Encode <span class="fu">missing</span> <span class="kw">values</span> ──</span>
+<span id="cb28-42"><a href="#cb28-42" tabindex="-1"></a><span class="kw">mvencode</span> contrib1 contrib2 contrib3, mv(0)</span>
+<span id="cb28-43"><a href="#cb28-43" tabindex="-1"></a></span>
+<span id="cb28-44"><a href="#cb28-44" tabindex="-1"></a>* ── Clean up ──</span>
+<span id="cb28-45"><a href="#cb28-45" tabindex="-1"></a><span class="kw">drop</span> region q01 q05 q20</span>
+<span id="cb28-46"><a href="#cb28-46" tabindex="-1"></a></span>
+<span id="cb28-47"><a href="#cb28-47" tabindex="-1"></a>* ── Labels ──</span>
+<span id="cb28-48"><a href="#cb28-48" tabindex="-1"></a>lab <span class="kw">var</span> sex <span class="st">&quot;Sex&quot;</span></span>
+<span id="cb28-49"><a href="#cb28-49" tabindex="-1"></a>lab <span class="kw">var</span> relationship <span class="st">&quot;Relationship to household head&quot;</span></span>
+<span id="cb28-50"><a href="#cb28-50" tabindex="-1"></a>lab def sex_lbl 1 <span class="st">&quot;Male&quot;</span> 2 <span class="st">&quot;Female&quot;</span></span>
+<span id="cb28-51"><a href="#cb28-51" tabindex="-1"></a>lab val sex sex_lbl</span>
+<span id="cb28-52"><a href="#cb28-52" tabindex="-1"></a>lab def rel_lbl 1 <span class="st">&quot;Head&quot;</span> 2 <span class="st">&quot;Spouse&quot;</span> 3 <span class="st">&quot;Child&quot;</span> 4 <span class="st">&quot;Other relative&quot;</span> 5 <span class="st">&quot;Non-relative&quot;</span></span>
+<span id="cb28-53"><a href="#cb28-53" tabindex="-1"></a>lab val relationship rel_lbl</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="fu">library</span>(metasurvey)</span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a><span class="co"># Write the example do-file to a temp location</span></span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a><span class="co"># Note: STATA macros use backtick-quote (`var&#39;) which we build with paste0</span></span>
+<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a>bt <span class="ot">&lt;-</span> <span class="st">&quot;`&quot;</span> <span class="co"># backtick</span></span>
+<span id="cb29-6"><a href="#cb29-6" tabindex="-1"></a>sq <span class="ot">&lt;-</span> <span class="st">&quot;&#39;&quot;</span> <span class="co"># single quote</span></span>
+<span id="cb29-7"><a href="#cb29-7" tabindex="-1"></a>do_lines <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb29-8"><a href="#cb29-8" tabindex="-1"></a>  <span class="st">&quot;rename id hh_id&quot;</span>,</span>
+<span id="cb29-9"><a href="#cb29-9" tabindex="-1"></a>  <span class="st">&quot;rename nper person_id&quot;</span>,</span>
+<span id="cb29-10"><a href="#cb29-10" tabindex="-1"></a>  <span class="st">&quot;gen weight_yr = pesoano&quot;</span>,</span>
+<span id="cb29-11"><a href="#cb29-11" tabindex="-1"></a>  <span class="st">&quot;gen weight_qt = pesotri&quot;</span>,</span>
+<span id="cb29-12"><a href="#cb29-12" tabindex="-1"></a>  <span class="st">&quot;gen sex = q01&quot;</span>,</span>
+<span id="cb29-13"><a href="#cb29-13" tabindex="-1"></a>  <span class="st">&quot;g relationship = -9&quot;</span>,</span>
+<span id="cb29-14"><a href="#cb29-14" tabindex="-1"></a>  <span class="st">&quot;replace relationship = 1 if q05 == 1&quot;</span>,</span>
+<span id="cb29-15"><a href="#cb29-15" tabindex="-1"></a>  <span class="st">&quot;replace relationship = 2 if q05 == 2&quot;</span>,</span>
+<span id="cb29-16"><a href="#cb29-16" tabindex="-1"></a>  <span class="st">&quot;replace relationship = 3 if inrange(q05, 3, 5)&quot;</span>,</span>
+<span id="cb29-17"><a href="#cb29-17" tabindex="-1"></a>  <span class="st">&quot;replace relationship = 4 if q05 == 6&quot;</span>,</span>
+<span id="cb29-18"><a href="#cb29-18" tabindex="-1"></a>  <span class="st">&quot;replace relationship = 5 if q05 == 7&quot;</span>,</span>
+<span id="cb29-19"><a href="#cb29-19" tabindex="-1"></a>  <span class="st">&quot;gen area = .&quot;</span>,</span>
+<span id="cb29-20"><a href="#cb29-20" tabindex="-1"></a>  <span class="st">&quot;replace area = 1 if region == 1&quot;</span>,</span>
+<span id="cb29-21"><a href="#cb29-21" tabindex="-1"></a>  <span class="st">&quot;replace area = 2 if region == 2&quot;</span>,</span>
+<span id="cb29-22"><a href="#cb29-22" tabindex="-1"></a>  <span class="st">&quot;replace area = 3 if region == 3&quot;</span>,</span>
+<span id="cb29-23"><a href="#cb29-23" tabindex="-1"></a>  <span class="st">&quot;recode q20 (2=2) (3=-9) (4=3) (5=4), gen(edu_compat)&quot;</span>,</span>
+<span id="cb29-24"><a href="#cb29-24" tabindex="-1"></a>  <span class="st">&quot;bysort hh_id: egen max_age = max(edad)&quot;</span>,</span>
+<span id="cb29-25"><a href="#cb29-25" tabindex="-1"></a>  <span class="st">&quot;bysort hh_id: egen n_members = count(person_id)&quot;</span>,</span>
+<span id="cb29-26"><a href="#cb29-26" tabindex="-1"></a>  <span class="st">&quot;foreach i of numlist 1/3 {&quot;</span>,</span>
+<span id="cb29-27"><a href="#cb29-27" tabindex="-1"></a>  <span class="fu">paste0</span>(<span class="st">&quot;gen contrib&quot;</span>, bt, <span class="st">&quot;i&quot;</span>, sq, <span class="st">&quot; = 0&quot;</span>),</span>
+<span id="cb29-28"><a href="#cb29-28" tabindex="-1"></a>  <span class="fu">paste0</span>(<span class="st">&quot;replace contrib&quot;</span>, bt, <span class="st">&quot;i&quot;</span>, sq, <span class="st">&quot; = amount if provider == &quot;</span>, bt, <span class="st">&quot;i&quot;</span>, sq),</span>
+<span id="cb29-29"><a href="#cb29-29" tabindex="-1"></a>  <span class="st">&quot;}&quot;</span>,</span>
+<span id="cb29-30"><a href="#cb29-30" tabindex="-1"></a>  <span class="st">&quot;mvencode contrib1 contrib2 contrib3, mv(0)&quot;</span>,</span>
+<span id="cb29-31"><a href="#cb29-31" tabindex="-1"></a>  <span class="st">&quot;drop region q01 q05 q20&quot;</span>,</span>
+<span id="cb29-32"><a href="#cb29-32" tabindex="-1"></a>  <span class="st">&#39;lab var sex &quot;Sex&quot;&#39;</span>,</span>
+<span id="cb29-33"><a href="#cb29-33" tabindex="-1"></a>  <span class="st">&#39;lab var relationship &quot;Relationship to household head&quot;&#39;</span>,</span>
+<span id="cb29-34"><a href="#cb29-34" tabindex="-1"></a>  <span class="st">&#39;lab def sex_lbl 1 &quot;Male&quot; 2 &quot;Female&quot;&#39;</span>,</span>
+<span id="cb29-35"><a href="#cb29-35" tabindex="-1"></a>  <span class="st">&quot;lab val sex sex_lbl&quot;</span>,</span>
+<span id="cb29-36"><a href="#cb29-36" tabindex="-1"></a>  <span class="st">&#39;lab def rel_lbl 1 &quot;Head&quot; 2 &quot;Spouse&quot; 3 &quot;Child&quot; 4 &quot;Other relative&quot; 5 &quot;Non-relative&quot;&#39;</span>,</span>
+<span id="cb29-37"><a href="#cb29-37" tabindex="-1"></a>  <span class="st">&quot;lab val relationship rel_lbl&quot;</span></span>
+<span id="cb29-38"><a href="#cb29-38" tabindex="-1"></a>)</span>
+<span id="cb29-39"><a href="#cb29-39" tabindex="-1"></a>do_file <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">&quot;.do&quot;</span>)</span>
+<span id="cb29-40"><a href="#cb29-40" tabindex="-1"></a><span class="fu">writeLines</span>(do_lines, do_file)</span>
+<span id="cb29-41"><a href="#cb29-41" tabindex="-1"></a></span>
+<span id="cb29-42"><a href="#cb29-42" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">transpile_stata</span>(do_file)</span></code></pre></div>
+<div id="inspecting-the-output" class="section level3">
+<h3>Inspecting the output</h3>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Translated:&quot;</span>, result<span class="sc">$</span>stats<span class="sc">$</span>translated, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb30-2"><a href="#cb30-2" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Skipped:   &quot;</span>, result<span class="sc">$</span>stats<span class="sc">$</span>skipped, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb30-3"><a href="#cb30-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Manual:    &quot;</span>, result<span class="sc">$</span>stats<span class="sc">$</span>manual_review, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="co"># Print the generated steps</span></span>
+<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a><span class="cf">for</span> (s <span class="cf">in</span> result<span class="sc">$</span>steps) <span class="fu">cat</span>(s, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+</div>
+<div id="labels-1" class="section level3">
+<h3>Labels</h3>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a><span class="fu">str</span>(result<span class="sc">$</span>labels<span class="sc">$</span>var_labels)</span>
+<span id="cb32-2"><a href="#cb32-2" tabindex="-1"></a><span class="fu">str</span>(result<span class="sc">$</span>labels<span class="sc">$</span>val_labels)</span></code></pre></div>
+</div>
+<div id="building-a-recipe-from-transpiled-steps" class="section level3">
+<h3>Building a Recipe from transpiled steps</h3>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a>rec <span class="ot">&lt;-</span> Recipe<span class="sc">$</span><span class="fu">new</span>(</span>
+<span id="cb33-2"><a href="#cb33-2" tabindex="-1"></a>  <span class="at">id =</span> <span class="st">&quot;example_demographics&quot;</span>,</span>
+<span id="cb33-3"><a href="#cb33-3" tabindex="-1"></a>  <span class="at">name =</span> <span class="st">&quot;Demographics (transpiled)&quot;</span>,</span>
+<span id="cb33-4"><a href="#cb33-4" tabindex="-1"></a>  <span class="at">user =</span> <span class="st">&quot;research_team&quot;</span>,</span>
+<span id="cb33-5"><a href="#cb33-5" tabindex="-1"></a>  <span class="at">edition =</span> <span class="st">&quot;2022&quot;</span>,</span>
+<span id="cb33-6"><a href="#cb33-6" tabindex="-1"></a>  <span class="at">survey_type =</span> <span class="st">&quot;ech&quot;</span>,</span>
+<span id="cb33-7"><a href="#cb33-7" tabindex="-1"></a>  <span class="at">default_engine =</span> <span class="st">&quot;data.table&quot;</span>,</span>
+<span id="cb33-8"><a href="#cb33-8" tabindex="-1"></a>  <span class="at">depends_on =</span> <span class="fu">character</span>(<span class="dv">0</span>),</span>
+<span id="cb33-9"><a href="#cb33-9" tabindex="-1"></a>  <span class="at">description =</span> <span class="st">&quot;Harmonized demographics from STATA transpilation&quot;</span>,</span>
+<span id="cb33-10"><a href="#cb33-10" tabindex="-1"></a>  <span class="at">steps =</span> result<span class="sc">$</span>steps,</span>
+<span id="cb33-11"><a href="#cb33-11" tabindex="-1"></a>  <span class="at">labels =</span> result<span class="sc">$</span>labels</span>
+<span id="cb33-12"><a href="#cb33-12" tabindex="-1"></a>)</span>
+<span id="cb33-13"><a href="#cb33-13" tabindex="-1"></a></span>
+<span id="cb33-14"><a href="#cb33-14" tabindex="-1"></a><span class="co"># Save as JSON</span></span>
+<span id="cb33-15"><a href="#cb33-15" tabindex="-1"></a><span class="fu">save_recipe</span>(rec, <span class="st">&quot;demographics_recipe.json&quot;</span>)</span>
+<span id="cb33-16"><a href="#cb33-16" tabindex="-1"></a></span>
+<span id="cb33-17"><a href="#cb33-17" tabindex="-1"></a><span class="co"># Apply to survey data</span></span>
+<span id="cb33-18"><a href="#cb33-18" tabindex="-1"></a>svy <span class="ot">&lt;-</span> <span class="fu">survey_empty</span>(<span class="at">type =</span> <span class="st">&quot;ech&quot;</span>, <span class="at">edition =</span> <span class="st">&quot;2022&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb33-19"><a href="#cb33-19" tabindex="-1"></a>  <span class="fu">set_data</span>(my_data) <span class="sc">|&gt;</span></span>
+<span id="cb33-20"><a href="#cb33-20" tabindex="-1"></a>  <span class="fu">add_recipe</span>(rec) <span class="sc">|&gt;</span></span>
+<span id="cb33-21"><a href="#cb33-21" tabindex="-1"></a>  <span class="fu">bake_recipes</span>()</span></code></pre></div>
+</div>
+</div>
+<div id="module-level-transpilation" class="section level2">
+<h2>Module-level transpilation</h2>
+<p>For projects that organize <code>.do</code> files by year and
+thematic module, <code>transpile_stata_module()</code> processes an
+entire year directory and groups the results into separate Recipe
+objects:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a>recipes <span class="ot">&lt;-</span> <span class="fu">transpile_stata_module</span>(</span>
+<span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a>  <span class="at">year_dir =</span> <span class="st">&quot;do_files/2022&quot;</span>,</span>
+<span id="cb34-3"><a href="#cb34-3" tabindex="-1"></a>  <span class="at">year =</span> <span class="dv">2022</span>,</span>
+<span id="cb34-4"><a href="#cb34-4" tabindex="-1"></a>  <span class="at">user =</span> <span class="st">&quot;research_team&quot;</span>,</span>
+<span id="cb34-5"><a href="#cb34-5" tabindex="-1"></a>  <span class="at">output_dir =</span> <span class="st">&quot;recipes/&quot;</span></span>
+<span id="cb34-6"><a href="#cb34-6" tabindex="-1"></a>)</span>
+<span id="cb34-7"><a href="#cb34-7" tabindex="-1"></a></span>
+<span id="cb34-8"><a href="#cb34-8" tabindex="-1"></a><span class="fu">names</span>(recipes)</span>
+<span id="cb34-9"><a href="#cb34-9" tabindex="-1"></a><span class="co">#&gt; [1] &quot;data_prep&quot;        &quot;demographics&quot;     &quot;income_detail&quot;</span></span>
+<span id="cb34-10"><a href="#cb34-10" tabindex="-1"></a><span class="co">#&gt; [4] &quot;income_aggregate&quot; &quot;cleanup&quot;</span></span>
+<span id="cb34-11"><a href="#cb34-11" tabindex="-1"></a></span>
+<span id="cb34-12"><a href="#cb34-12" tabindex="-1"></a><span class="co"># Each recipe has inter-module dependencies</span></span>
+<span id="cb34-13"><a href="#cb34-13" tabindex="-1"></a>recipes<span class="sc">$</span>income_detail<span class="sc">$</span>depends_on_recipes</span>
+<span id="cb34-14"><a href="#cb34-14" tabindex="-1"></a><span class="co">#&gt; [1] &quot;ech_2022_data_prep&quot;    &quot;ech_2022_demographics&quot;</span></span></code></pre></div>
+</div>
+<div id="coverage-analysis" class="section level2">
+<h2>Coverage analysis</h2>
+<p><code>transpile_coverage()</code> reports how many commands in a
+<code>.do</code> file (or directory) can be automatically
+transpiled:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a><span class="fu">transpile_coverage</span>(<span class="st">&quot;do_files/&quot;</span>)</span>
+<span id="cb35-2"><a href="#cb35-2" tabindex="-1"></a><span class="co">#&gt;                               file total translated skipped manual coverage</span></span>
+<span id="cb35-3"><a href="#cb35-3" tabindex="-1"></a><span class="co">#&gt; 1   2022/2_correc_datos.do             82        60      22      0   100.00</span></span>
+<span id="cb35-4"><a href="#cb35-4" tabindex="-1"></a><span class="co">#&gt; 2   2022/3_compatibiliz...do          420       380      40      0   100.00</span></span>
+<span id="cb35-5"><a href="#cb35-5" tabindex="-1"></a><span class="co">#&gt; 3   2022/4_ingreso_ht11...do          310       270      40      0   100.00</span></span></code></pre></div>
+<p>The <code>coverage_pct</code> column reports the percentage of
+<strong>data-transforming</strong> commands that were translated
+(excluding skipped non-data commands). A value below 100% means some
+commands need manual review – look at the <code>$warnings</code> element
+for details.</p>
+</div>
+<div id="limitations" class="section level2">
+<h2>Limitations</h2>
+<p>The transpiler does <strong>not</strong> handle:</p>
+<ul>
+<li><code>merge</code> commands (these depend on external files and are
+translated as comments with <code># MANUAL_REVIEW</code>)</li>
+<li><code>collapse</code> / <code>reshape</code> (structural data
+transformations)</li>
+<li>Custom <code>program</code> definitions</li>
+<li><code>mata</code> blocks or <code>plugin</code> calls</li>
+<li>Nested <code>/* */</code> block comments that contain
+<code>/* */</code> line continuations internally (rare; only seen in
+commented-out legacy code)</li>
+</ul>
+<p>Commands that fall outside the transpiler’s scope are flagged with
+<code># MANUAL_REVIEW</code> in the output and counted in
+<code>$stats$manual_review</code>.</p>
+</div>
+<div id="summary" class="section level2">
+<h2>Summary</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>gen / generate</td>
+<td>Fully supported</td>
+</tr>
+<tr class="even">
+<td>replace (conditional)</td>
+<td>Fully supported</td>
+</tr>
+<tr class="odd">
+<td>gen + replace chains</td>
+<td>Auto-grouped into step_recode or step_compute</td>
+</tr>
+<tr class="even">
+<td>recode (single &amp; multi-var)</td>
+<td>Fully supported</td>
+</tr>
+<tr class="odd">
+<td>egen with by-groups</td>
+<td>Fully supported</td>
+</tr>
+<tr class="even">
+<td>foreach / forvalues</td>
+<td>Expanded during parsing</td>
+</tr>
+<tr class="odd">
+<td>mvencode</td>
+<td>Fully supported</td>
+</tr>
+<tr class="even">
+<td>destring / tostring</td>
+<td>Fully supported</td>
+</tr>
+<tr class="odd">
+<td>rename / drop / keep</td>
+<td>Fully supported</td>
+</tr>
+<tr class="even">
+<td>Variable &amp; value labels</td>
+<td>Extracted to recipe metadata</td>
+</tr>
+<tr class="odd">
+<td>STATA expressions</td>
+<td>inrange, inlist, missing, lag/lead, _N</td>
+</tr>
+<tr class="even">
+<td>Variable ranges</td>
+<td>Expanded (e.g., var1-var4)</td>
+</tr>
+<tr class="odd">
+<td>Nested loops</td>
+<td>Recursive expansion</td>
+</tr>
+<tr class="even">
+<td>Line continuation (///)</td>
+<td>Joined during parsing</td>
+</tr>
+<tr class="odd">
+<td>capture prefix</td>
+<td>Handled (errors suppressed)</td>
+</tr>
+<tr class="even">
+<td>bysort prefix</td>
+<td>Converted to .by parameter</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
