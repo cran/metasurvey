@@ -4,7 +4,7 @@
 \alias{workflow}
 \title{Execute estimation workflow for surveys}
 \usage{
-workflow(svy, ..., estimation_type = "monthly")
+workflow(svy, ..., estimation_type = "monthly", level = 0.95)
 }
 \arguments{
 \item{svy}{A \strong{list} of Survey objects, or a PoolSurvey.
@@ -19,19 +19,30 @@ Must contain properly configured sample design.}
 determines which weight to use. Options:
 \code{"monthly"}, \code{"quarterly"}, \code{"annual"}, or vector
 with multiple types}
+
+\item{level}{Confidence level for the interval (default \code{0.95}).
+Passed to \code{\link[stats]{confint}}.
+Can also be set per-call inside the estimation function
+(e.g., \code{svymean(~x, na.rm = TRUE, level = 0.90)}),
+which overrides the \code{workflow()} default for that estimation.}
 }
 \value{
 \code{data.table} with results from all
 estimations, including columns:
 \itemize{
-\item \code{stat}: Name of estimated statistic
-\item \code{value}: Estimation value
+\item \code{stat}: Estimation call and variable name
+\item \code{variable}: Variable name (for filtering)
+\item \code{value}: Point estimate
 \item \code{se}: Standard error
-\item \code{cv}: Coefficient of variation
-\item \code{estimation_type}: Type of estimation used
-\item \code{survey_edition}: Survey edition
-\item Other columns depending on estimation type
+\item \code{cv}: Coefficient of variation (proportion)
+\item \code{confint_lower}: Lower bound of confidence interval
+\item \code{confint_upper}: Upper bound of confidence interval
+\item \code{evaluate}: CV quality label from
+\code{\link{evaluate_cv}} (e.g. "Excellent", "Good",
+"Use with caution")
 }
+For \code{svyby} estimations, grouping variables (e.g.
+\code{region}, \code{sexo}) appear as additional columns.
 }
 \description{
 This function executes a sequence of statistical estimations on Survey
@@ -54,7 +65,7 @@ For PoolSurvey objects, it uses a specialized methodology that handles
 pooling of multiple surveys.
 }
 \examples{
-# Simple estimation with a test survey
+# Simple estimation
 dt <- data.table::data.table(
   x = rnorm(100), g = sample(c("a", "b"), 100, TRUE),
   w = rep(1, 100)
@@ -70,13 +81,27 @@ result <- workflow(
   estimation_type = "annual"
 )
 
-\donttest{
-# ECH example with domain estimations
-# result <- workflow(
-#   survey = list(ech_2023),
-#   svyby(~unemployed, ~region, svymean, na.rm = TRUE),
-#   estimation_type = "annual")
-}
+# Domain estimation with svyby
+result_by <- workflow(
+  svy = list(svy),
+  survey::svyby(~x, ~g, survey::svymean, na.rm = TRUE),
+  estimation_type = "annual"
+)
+
+# Custom confidence level (90\%) for all estimations
+result_90 <- workflow(
+  svy = list(svy),
+  survey::svymean(~x, na.rm = TRUE),
+  estimation_type = "annual",
+  level = 0.90
+)
+
+# Per-call confidence level (overrides workflow default)
+result_mixed <- workflow(
+  svy = list(svy),
+  survey::svymean(~x, na.rm = TRUE, level = 0.80),
+  estimation_type = "annual"
+)
 
 }
 \seealso{

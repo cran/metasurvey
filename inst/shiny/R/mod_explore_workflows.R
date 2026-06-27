@@ -83,35 +83,32 @@ explore_workflows_server <- function(
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    # Reactive: all workflows from MongoDB
-    all_workflows <- shiny::reactiveVal(list())
+    # Reactive: all workflows — start with examples for instant display
+    all_workflows <- shiny::reactiveVal(example_workflows())
 
     # Track current modal workflow for star/comment observers
     current_modal_workflow <- shiny::reactiveValues(id = NULL)
 
     load_workflows <- function() {
-      shiny::withProgress(message = "Loading workflows...", {
-        workflows <- tryCatch(
-          shiny_fetch_workflows(),
-          error = function(e) {
-            shiny::showNotification(
-              paste("Could not load workflows:", e$message),
-              type = "error", duration = 5
-            )
-            list()
-          }
-        )
+      workflows <- tryCatch(
+        shiny_fetch_workflows(),
+        error = function(e) {
+          shiny::showNotification(
+            paste("Could not load workflows:", e$message),
+            type = "warning", duration = 5
+          )
+          list()
+        }
+      )
+      if (length(workflows) > 0) {
         all_workflows(workflows)
-      })
+      }
     }
 
-    # Load on startup
-    shiny::observe(
-      {
-        load_workflows()
-      },
-      priority = 100
-    )
+    # Try API after first render so examples show instantly
+    session$onFlushed(function() {
+      load_workflows()
+    }, once = TRUE)
 
     # Refresh button
     shiny::observeEvent(input$btn_refresh, {
@@ -223,7 +220,7 @@ explore_workflows_server <- function(
     open_workflow_modal <- function(wf) {
       # Increment downloads
       tryCatch(
-        shiny_increment_workflow_downloads(wf$id),
+        shiny_incr_wf_downloads(wf$id),
         error = function(e) NULL
       )
 
@@ -310,7 +307,9 @@ explore_workflows_server <- function(
     shiny::observeEvent(input$workflow_star_click, {
       value <- input$workflow_star_click
       wid <- current_modal_workflow$id
-      if (is.null(wid) || !isTRUE(auth_state$logged_in)) return()
+      if (is.null(wid) || !isTRUE(auth_state$logged_in)) {
+        return()
+      }
       tryCatch(
         {
           result <- shiny_star("workflow", wid, value, auth_state$token)
@@ -339,8 +338,12 @@ explore_workflows_server <- function(
     shiny::observeEvent(input$workflow_submit_comment, {
       text <- input$workflow_submit_comment
       wid <- current_modal_workflow$id
-      if (is.null(wid) || !isTRUE(auth_state$logged_in)) return()
-      if (!nzchar(trimws(text))) return()
+      if (is.null(wid) || !isTRUE(auth_state$logged_in)) {
+        return()
+      }
+      if (!nzchar(trimws(text))) {
+        return()
+      }
       tryCatch(
         {
           result <- shiny_add_comment("workflow", wid, text, auth_state$token)
@@ -368,7 +371,9 @@ explore_workflows_server <- function(
     # Delete comment
     shiny::observeEvent(input$delete_comment, {
       cid <- input$delete_comment
-      if (is.null(cid) || !isTRUE(auth_state$logged_in)) return()
+      if (is.null(cid) || !isTRUE(auth_state$logged_in)) {
+        return()
+      }
       tryCatch(
         {
           result <- shiny_delete_comment(cid, auth_state$token)

@@ -85,8 +85,8 @@ explore_server <- function(
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    # Reactive: all recipes from MongoDB
-    all_recipes <- shiny::reactiveVal(list())
+    # Reactive: all recipes — start with examples for instant display
+    all_recipes <- shiny::reactiveVal(example_recipes())
 
     # Counter for unique graph IDs
     graph_counter <- shiny::reactiveVal(0)
@@ -95,28 +95,25 @@ explore_server <- function(
     current_modal_recipe <- shiny::reactiveValues(id = NULL)
 
     load_recipes <- function() {
-      shiny::withProgress(message = "Loading recipes...", {
-        recipes <- tryCatch(
-          shiny_fetch_recipes(),
-          error = function(e) {
-            shiny::showNotification(
-              paste("Could not load recipes:", e$message),
-              type = "error", duration = 5
-            )
-            list()
-          }
-        )
+      recipes <- tryCatch(
+        shiny_fetch_recipes(),
+        error = function(e) {
+          shiny::showNotification(
+            paste("Could not load recipes:", e$message),
+            type = "warning", duration = 5
+          )
+          list()
+        }
+      )
+      if (length(recipes) > 0) {
         all_recipes(recipes)
-      })
+      }
     }
 
-    # Load on startup
-    shiny::observe(
-      {
-        load_recipes()
-      },
-      priority = 100
-    )
+    # Try API after first render so examples show instantly
+    session$onFlushed(function() {
+      load_recipes()
+    }, once = TRUE)
 
     # Refresh button
     shiny::observeEvent(input$btn_refresh, {
@@ -387,7 +384,9 @@ explore_server <- function(
     shiny::observeEvent(input$recipe_star_click, {
       value <- input$recipe_star_click
       rid <- current_modal_recipe$id
-      if (is.null(rid) || !isTRUE(auth_state$logged_in)) return()
+      if (is.null(rid) || !isTRUE(auth_state$logged_in)) {
+        return()
+      }
       tryCatch(
         {
           result <- shiny_star("recipe", rid, value, auth_state$token)
@@ -416,8 +415,12 @@ explore_server <- function(
     shiny::observeEvent(input$recipe_submit_comment, {
       text <- input$recipe_submit_comment
       rid <- current_modal_recipe$id
-      if (is.null(rid) || !isTRUE(auth_state$logged_in)) return()
-      if (!nzchar(trimws(text))) return()
+      if (is.null(rid) || !isTRUE(auth_state$logged_in)) {
+        return()
+      }
+      if (!nzchar(trimws(text))) {
+        return()
+      }
       tryCatch(
         {
           result <- shiny_add_comment("recipe", rid, text, auth_state$token)
@@ -445,7 +448,9 @@ explore_server <- function(
     # Delete comment
     shiny::observeEvent(input$delete_comment, {
       cid <- input$delete_comment
-      if (is.null(cid) || !isTRUE(auth_state$logged_in)) return()
+      if (is.null(cid) || !isTRUE(auth_state$logged_in)) {
+        return()
+      }
       tryCatch(
         {
           result <- shiny_delete_comment(cid, auth_state$token)

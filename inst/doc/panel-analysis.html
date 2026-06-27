@@ -449,12 +449,12 @@ cross-sectional or time-series analysis.</p>
 <span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>)</span>
 <span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a></span>
 <span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>result_impl</span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt;                       stat    value       se         cv confint_lower</span></span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt;                     &lt;char&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: income 43742.45 2420.706 0.05533997      38997.96</span></span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt;    confint_upper</span></span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;</span></span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; 1:      48486.95</span></span></code></pre></div>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt;                       stat variable    value       se         cv confint_lower</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt;                     &lt;char&gt;   &lt;char&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: income   income 43742.45 2420.706 0.05533997      38997.96</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt;    confint_upper  evaluate</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;    &lt;char&gt;</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; 1:      48486.95 Very good</span></span></code></pre></div>
 </div>
 <div id="comparison-across-follow-ups" class="section level3">
 <h3>Comparison across follow-ups</h3>
@@ -503,16 +503,16 @@ sampling variability.</p>
 <span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>)</span>
 <span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a></span>
 <span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>pool_result</span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt;                       stat    value       se         cv confint_lower</span></span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;                     &lt;char&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: income 44574.23 2226.844 0.04995811      40209.69</span></span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; 2: survey::svymean: income 44341.53 2407.912 0.05430377      39622.10</span></span>
-<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt; 3: survey::svymean: income 41293.92 2239.968 0.05424451      36903.66</span></span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt;    confint_upper period   type variance</span></span>
-<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;  &lt;num&gt; &lt;char&gt;    &lt;num&gt;</span></span>
-<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt; 1:      48938.76   2023     q1  4958836</span></span>
-<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt; 2:      49060.95   2023     q1  5798041</span></span>
-<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; 3:      45684.18   2023     q1  5017458</span></span></code></pre></div>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt;                       stat variable    value       se         cv confint_lower</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;                     &lt;char&gt;   &lt;char&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: income   income 44574.23 2226.844 0.04995811      40209.69</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; 2: survey::svymean: income   income 44341.53 2407.912 0.05430377      39622.10</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt; 3: survey::svymean: income   income 41293.92 2239.968 0.05424451      36903.66</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt;    confint_upper  evaluate period   type variance</span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;    &lt;char&gt;  &lt;num&gt; &lt;char&gt;    &lt;num&gt;</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt; 1:      48938.76 Excellent   2023     q1  4958836</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt; 2:      49060.95 Very good   2023     q1  5798041</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; 3:      45684.18 Very good   2023     q1  5017458</span></span></code></pre></div>
 </div>
 <div id="multiple-groups" class="section level3">
 <h3>Multiple groups</h3>
@@ -535,22 +535,22 @@ sampling variability.</p>
 <span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>)</span>
 <span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a></span>
 <span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>result_semester</span>
-<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="co">#&gt;                       stat    value       se         cv confint_lower</span></span>
-<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="co">#&gt;                     &lt;char&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
-<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: income 44574.23 2226.844 0.04995811      40209.69</span></span>
-<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="co">#&gt; 2: survey::svymean: income 44341.53 2407.912 0.05430377      39622.10</span></span>
-<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a><span class="co">#&gt; 3: survey::svymean: income 41293.92 2239.968 0.05424451      36903.66</span></span>
-<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="co">#&gt; 4: survey::svymean: income 41760.06 2296.170 0.05498485      37259.64</span></span>
-<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="co">#&gt; 5: survey::svymean: income 48051.67 2374.145 0.04940816      43398.43</span></span>
-<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="co">#&gt; 6: survey::svymean: income 42721.21 2276.767 0.05329359      38258.83</span></span>
-<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="co">#&gt;    confint_upper period   type variance</span></span>
-<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;  &lt;num&gt; &lt;char&gt;    &lt;num&gt;</span></span>
-<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="co">#&gt; 1:      48938.76   2023     q1  4958836</span></span>
-<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="co">#&gt; 2:      49060.95   2023     q1  5798041</span></span>
-<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="co">#&gt; 3:      45684.18   2023     q1  5017458</span></span>
-<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a><span class="co">#&gt; 4:      46260.47   2023     q2  5272399</span></span>
-<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a><span class="co">#&gt; 5:      52704.90   2023     q2  5636562</span></span>
-<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="co">#&gt; 6:      47183.59   2023     q2  5183666</span></span></code></pre></div>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="co">#&gt;                       stat variable    value       se         cv confint_lower</span></span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="co">#&gt;                     &lt;char&gt;   &lt;char&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: income   income 44574.23 2226.844 0.04995811      40209.69</span></span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="co">#&gt; 2: survey::svymean: income   income 44341.53 2407.912 0.05430377      39622.10</span></span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a><span class="co">#&gt; 3: survey::svymean: income   income 41293.92 2239.968 0.05424451      36903.66</span></span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="co">#&gt; 4: survey::svymean: income   income 41760.06 2296.170 0.05498485      37259.64</span></span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="co">#&gt; 5: survey::svymean: income   income 48051.67 2374.145 0.04940816      43398.43</span></span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="co">#&gt; 6: survey::svymean: income   income 42721.21 2276.767 0.05329359      38258.83</span></span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="co">#&gt;    confint_upper  evaluate period   type variance</span></span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;    &lt;char&gt;  &lt;num&gt; &lt;char&gt;    &lt;num&gt;</span></span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="co">#&gt; 1:      48938.76 Excellent   2023     q1  4958836</span></span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="co">#&gt; 2:      49060.95 Very good   2023     q1  5798041</span></span>
+<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="co">#&gt; 3:      45684.18 Very good   2023     q1  5017458</span></span>
+<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a><span class="co">#&gt; 4:      46260.47 Very good   2023     q2  5272399</span></span>
+<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a><span class="co">#&gt; 5:      52704.90 Excellent   2023     q2  5636562</span></span>
+<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="co">#&gt; 6:      47183.59 Very good   2023     q2  5183666</span></span></code></pre></div>
 </div>
 </div>
 <div id="extracting-surveys-from-panels" class="section level2">

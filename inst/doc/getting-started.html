@@ -654,12 +654,12 @@ with standard errors and coefficients of variation.</p>
 <span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>)</span>
 <span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a></span>
 <span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a>result</span>
-<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co">#&gt;                     stat    value       se         cv confint_lower</span></span>
-<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a><span class="co">#&gt;                   &lt;char&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
-<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: HT11 110389.3 4076.154 0.03692528      102400.1</span></span>
-<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a><span class="co">#&gt;    confint_upper</span></span>
-<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;</span></span>
-<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="co">#&gt; 1:      118378.4</span></span></code></pre></div>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co">#&gt;                     stat variable    value       se         cv confint_lower</span></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a><span class="co">#&gt;                   &lt;char&gt;   &lt;char&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: HT11     HT11 110389.3 4076.154 0.03692528      102400.1</span></span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a><span class="co">#&gt;    confint_upper  evaluate</span></span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;    &lt;char&gt;</span></span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="co">#&gt; 1:      118378.4 Excellent</span></span></code></pre></div>
 <p>The output includes:</p>
 <ul>
 <li><code>estimate</code>: Point estimate</li>
@@ -681,20 +681,20 @@ with standard errors and coefficients of variation.</p>
 <span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>)</span>
 <span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a></span>
 <span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>results</span>
-<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="co">#&gt;                                       stat        value           se         cv</span></span>
-<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a><span class="co">#&gt;                                     &lt;char&gt;        &lt;num&gt;        &lt;num&gt;      &lt;num&gt;</span></span>
-<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a><span class="co">#&gt; 1:                   survey::svymean: HT11 1.103893e+05 4.076154e+03 0.03692528</span></span>
-<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a><span class="co">#&gt; 2:              survey::svytotal: employed 1.426200e+04 6.756206e+02 0.04737208</span></span>
-<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a><span class="co">#&gt; 3:   survey::svymean: labor_statusEmployed 5.551576e-01 2.610113e-02 0.04701571</span></span>
-<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a><span class="co">#&gt; 4:   survey::svymean: labor_statusInactive 3.860646e-01 2.551750e-02 0.06609646</span></span>
-<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a><span class="co">#&gt; 5: survey::svymean: labor_statusUnemployed 5.877773e-02 1.309115e-02 0.22272291</span></span>
-<span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a><span class="co">#&gt;    confint_lower confint_upper</span></span>
-<span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;         &lt;num&gt;</span></span>
-<span id="cb16-19"><a href="#cb16-19" tabindex="-1"></a><span class="co">#&gt; 1:  1.024001e+05  1.183784e+05</span></span>
-<span id="cb16-20"><a href="#cb16-20" tabindex="-1"></a><span class="co">#&gt; 2:  1.293781e+04  1.558619e+04</span></span>
-<span id="cb16-21"><a href="#cb16-21" tabindex="-1"></a><span class="co">#&gt; 3:  5.040004e-01  6.063149e-01</span></span>
-<span id="cb16-22"><a href="#cb16-22" tabindex="-1"></a><span class="co">#&gt; 4:  3.360512e-01  4.360780e-01</span></span>
-<span id="cb16-23"><a href="#cb16-23" tabindex="-1"></a><span class="co">#&gt; 5:  3.311956e-02  8.443591e-02</span></span></code></pre></div>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="co">#&gt;                                       stat               variable        value</span></span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a><span class="co">#&gt;                                     &lt;char&gt;                 &lt;char&gt;        &lt;num&gt;</span></span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a><span class="co">#&gt; 1:                   survey::svymean: HT11                   HT11 1.103893e+05</span></span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a><span class="co">#&gt; 2:              survey::svytotal: employed               employed 1.426200e+04</span></span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a><span class="co">#&gt; 3:   survey::svymean: labor_statusEmployed   labor_statusEmployed 5.551576e-01</span></span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a><span class="co">#&gt; 4:   survey::svymean: labor_statusInactive   labor_statusInactive 3.860646e-01</span></span>
+<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a><span class="co">#&gt; 5: survey::svymean: labor_statusUnemployed labor_statusUnemployed 5.877773e-02</span></span>
+<span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a><span class="co">#&gt;              se         cv confint_lower confint_upper   evaluate</span></span>
+<span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a><span class="co">#&gt;           &lt;num&gt;      &lt;num&gt;         &lt;num&gt;         &lt;num&gt;     &lt;char&gt;</span></span>
+<span id="cb16-19"><a href="#cb16-19" tabindex="-1"></a><span class="co">#&gt; 1: 4.076154e+03 0.03692528  1.024001e+05  1.183784e+05  Excellent</span></span>
+<span id="cb16-20"><a href="#cb16-20" tabindex="-1"></a><span class="co">#&gt; 2: 6.756206e+02 0.04737208  1.293781e+04  1.558619e+04  Excellent</span></span>
+<span id="cb16-21"><a href="#cb16-21" tabindex="-1"></a><span class="co">#&gt; 3: 2.610113e-02 0.04701571  5.040004e-01  6.063149e-01  Excellent</span></span>
+<span id="cb16-22"><a href="#cb16-22" tabindex="-1"></a><span class="co">#&gt; 4: 2.551750e-02 0.06609646  3.360512e-01  4.360780e-01  Very good</span></span>
+<span id="cb16-23"><a href="#cb16-23" tabindex="-1"></a><span class="co">#&gt; 5: 1.309115e-02 0.22272291  3.311956e-02  8.443591e-02 Acceptable</span></span></code></pre></div>
 </div>
 <div id="domain-estimation" class="section level3">
 <h3>Domain estimation</h3>
@@ -708,14 +708,14 @@ with standard errors and coefficients of variation.</p>
 <span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>)</span>
 <span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a></span>
 <span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>income_by_gender</span>
-<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a><span class="co">#&gt;                                   stat    value       se         cv</span></span>
-<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a><span class="co">#&gt;                                 &lt;char&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;</span></span>
-<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svyby: HT11 [gender=Female] 111107.9 5955.676 0.05360263</span></span>
-<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a><span class="co">#&gt; 2:   survey::svyby: HT11 [gender=Male] 109608.9 5519.291 0.05035439</span></span>
-<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a><span class="co">#&gt;    confint_lower confint_upper gender</span></span>
-<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;         &lt;num&gt; &lt;char&gt;</span></span>
-<span id="cb17-15"><a href="#cb17-15" tabindex="-1"></a><span class="co">#&gt; 1:      99434.99      122780.8 Female</span></span>
-<span id="cb17-16"><a href="#cb17-16" tabindex="-1"></a><span class="co">#&gt; 2:      98791.31      120426.5   Male</span></span></code></pre></div>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a><span class="co">#&gt;                   stat variable    value       se         cv confint_lower</span></span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a><span class="co">#&gt;                 &lt;char&gt;   &lt;char&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svyby: HT11     HT11 111107.9 5955.676 0.05360263      99434.99</span></span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a><span class="co">#&gt; 2: survey::svyby: HT11     HT11 109608.9 5519.291 0.05035439      98791.31</span></span>
+<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a><span class="co">#&gt;    confint_upper  evaluate gender</span></span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;    &lt;char&gt; &lt;char&gt;</span></span>
+<span id="cb17-15"><a href="#cb17-15" tabindex="-1"></a><span class="co">#&gt; 1:      122780.8 Very good Female</span></span>
+<span id="cb17-16"><a href="#cb17-16" tabindex="-1"></a><span class="co">#&gt; 2:      120426.5 Very good   Male</span></span></code></pre></div>
 </div>
 </div>
 <div id="quality-assessment" class="section level2">

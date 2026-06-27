@@ -653,12 +653,12 @@ with poverty lines by region:</p>
 <span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>)</span>
 <span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a></span>
 <span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>result_income</span>
-<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="co">#&gt;                     stat    value       se         cv confint_lower</span></span>
-<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt;                   &lt;char&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
-<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: HT11 107869.1 3473.836 0.03220417      101060.5</span></span>
-<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt;    confint_upper</span></span>
-<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;</span></span>
-<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt; 1:      114677.7</span></span></code></pre></div>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="co">#&gt;                     stat variable    value       se         cv confint_lower</span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt;                   &lt;char&gt;   &lt;char&gt;    &lt;num&gt;    &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: HT11     HT11 107869.1 3473.836 0.03220417      101060.5</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt;    confint_upper  evaluate</span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;    &lt;char&gt;</span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt; 1:      114677.7 Excellent</span></span></code></pre></div>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Employment rate (proportion employed among total population)</span></span>
 <span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>result_employment <span class="ot">&lt;-</span> <span class="fu">workflow</span>(</span>
 <span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="fu">list</span>(svy),</span>
@@ -667,12 +667,12 @@ with poverty lines by region:</p>
 <span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>)</span>
 <span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a></span>
 <span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>result_employment</span>
-<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co">#&gt;                         stat     value         se         cv confint_lower</span></span>
-<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co">#&gt;                       &lt;char&gt;     &lt;num&gt;      &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
-<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: employed 0.4422188 0.02343197 0.05298728      0.396293</span></span>
-<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co">#&gt;    confint_upper</span></span>
-<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;</span></span>
-<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt; 1:     0.4881447</span></span></code></pre></div>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co">#&gt;                         stat variable     value         se         cv</span></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co">#&gt;                       &lt;char&gt;   &lt;char&gt;     &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svymean: employed employed 0.4422188 0.02343197 0.05298728</span></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co">#&gt;    confint_lower confint_upper  evaluate</span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;         &lt;num&gt;    &lt;char&gt;</span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt; 1:      0.396293     0.4881447 Very good</span></span></code></pre></div>
 <div id="domain-estimation" class="section level3">
 <h3>Domain estimation</h3>
 <p>Compute estimates by subpopulation:</p>
@@ -684,16 +684,16 @@ with poverty lines by region:</p>
 <span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>)</span>
 <span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a></span>
 <span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>income_region</span>
-<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co">#&gt;                                                       stat     value       se</span></span>
-<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co">#&gt;                                                     &lt;char&gt;     &lt;num&gt;    &lt;num&gt;</span></span>
-<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt; 1:  survey::svyby: HT11 [region_name=Interior loc. &lt; 5000]  90397.57 4632.957</span></span>
-<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co">#&gt; 2: survey::svyby: HT11 [region_name=Interior loc. &gt;= 5000] 103877.64 5949.558</span></span>
-<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="co">#&gt; 3:            survey::svyby: HT11 [region_name=Montevideo] 118302.36 5412.484</span></span>
-<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="co">#&gt;            cv confint_lower confint_upper           region_name</span></span>
-<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt;         &lt;num&gt;         &lt;num&gt;         &lt;num&gt;                &lt;char&gt;</span></span>
-<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt; 1: 0.05125091      81317.14       99478.0  Interior loc. &lt; 5000</span></span>
-<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt; 2: 0.05727467      92216.72      115538.6 Interior loc. &gt;= 5000</span></span>
-<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt; 3: 0.04575127     107694.09      128910.6            Montevideo</span></span></code></pre></div>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co">#&gt;                   stat variable     value       se         cv confint_lower</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co">#&gt;                 &lt;char&gt;   &lt;char&gt;     &lt;num&gt;    &lt;num&gt;      &lt;num&gt;         &lt;num&gt;</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svyby: HT11     HT11  90397.57 4632.957 0.05125091      81317.14</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co">#&gt; 2: survey::svyby: HT11     HT11 103877.64 5949.558 0.05727467      92216.72</span></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="co">#&gt; 3: survey::svyby: HT11     HT11 118302.36 5412.484 0.04575127     107694.09</span></span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="co">#&gt;    confint_upper  evaluate           region_name</span></span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;    &lt;char&gt;                &lt;char&gt;</span></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt; 1:       99478.0 Very good  Interior loc. &lt; 5000</span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt; 2:      115538.6 Very good Interior loc. &gt;= 5000</span></span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt; 3:      128910.6 Excellent            Montevideo</span></span></code></pre></div>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Employment by sex</span></span>
 <span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>employment_sex <span class="ot">&lt;-</span> <span class="fu">workflow</span>(</span>
 <span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="fu">list</span>(svy),</span>
@@ -702,14 +702,14 @@ with poverty lines by region:</p>
 <span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>)</span>
 <span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a></span>
 <span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>employment_sex</span>
-<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt;                                    stat     value         se         cv</span></span>
-<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt;                                  &lt;char&gt;     &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
-<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svyby: employed [sex=Female] 0.3824018 0.03146234 0.08227562</span></span>
-<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt; 2:   survey::svyby: employed [sex=Male] 0.5076963 0.03449008 0.06793446</span></span>
-<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt;    confint_lower confint_upper    sex</span></span>
-<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;         &lt;num&gt; &lt;char&gt;</span></span>
-<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#&gt; 1:     0.3207367     0.4440669 Female</span></span>
-<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&gt; 2:     0.4400970     0.5752956   Male</span></span></code></pre></div>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt;                       stat variable     value         se         cv</span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt;                     &lt;char&gt;   &lt;char&gt;     &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt; 1: survey::svyby: employed employed 0.3824018 0.03146234 0.08227562</span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt; 2: survey::svyby: employed employed 0.5076963 0.03449008 0.06793446</span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt;    confint_lower confint_upper  evaluate    sex</span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt;         &lt;num&gt;    &lt;char&gt; &lt;char&gt;</span></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#&gt; 1:     0.3207367     0.4440669 Very good Female</span></span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&gt; 2:     0.4400970     0.5752956 Very good   Male</span></span></code></pre></div>
 </div>
 <div id="quality-assessment" class="section level3">
 <h3>Quality assessment</h3>

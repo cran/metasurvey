@@ -1,3 +1,42 @@
+# metasurvey 0.0.24
+
+## Breaking changes
+* `workflow()`: parameter `conf.level` renamed to `level` to match
+  `stats::confint()` and `survey` package conventions. Per-call overrides now
+  use `level` as well (e.g., `svymean(~x, level = 0.90)`).
+
+## Bug fixes
+* `step_compute(.by=)`: grouped computations now survive `bake_steps()`.
+  Previously the `.by` parameter was not stored in the `Step` object, so
+  re-baking would re-execute without grouping, producing wrong results.
+* `compute()` with `.by`: fixed `merge()` creating `.x`/`.y` suffix columns
+  when the target column already existed in the data (e.g., during re-baking).
+* `bake_recipes()`: fixed global state leak where `lazy_processing` option
+  was not restored when baking multiple recipes, causing subsequent
+  `step_rename`/`step_remove` calls to fail.
+* `filter_recipes()`: added missing `topic` parameter, fixing `harmonize()`
+  example failures.
+
+# metasurvey 0.0.23
+
+## New features
+* `workflow()` now supports `conf.level` inside individual estimation calls
+  (e.g., `svymean(~x, na.rm = TRUE, conf.level = 0.80)`). The per-call value
+  overrides the `workflow()` default, allowing different confidence levels for
+  each estimation in the same call.
+
+# metasurvey 0.0.22
+
+## New features
+* `workflow()` gains a `conf.level` parameter (default `0.95`) to control the
+  confidence level of the interval. Passed through to `stats::confint()` for
+  all estimation types (`svymean`, `svyby`, `svyratio`, `convey`).
+* `workflow()` output now includes `variable` and `evaluate` columns across
+  all estimation types. `variable` enables clean filtering/grouping;
+  `evaluate` classifies CV quality via `evaluate_cv()`. `svyby` results no
+  longer embed group labels in the `stat` column — grouping variables
+  (`region`, `sexo`, etc.) appear as separate columns.
+
 # metasurvey 0.0.21
 
 ## New features
@@ -493,8 +532,8 @@
 
 ## Internal
 
-* Added `.claude/` directory with development agents and commands for
-  code review, testing, documentation auditing, and rOpenSci preparation.
+* Added development agents and commands for code review, testing,
+  documentation auditing, and rOpenSci preparation.
 
 # metasurvey 0.0.5
 

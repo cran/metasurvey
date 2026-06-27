@@ -30,6 +30,7 @@
 #   METASURVEY_WORKER_URL          — Internal worker URL (e.g. http://worker:8788)
 #   METASURVEY_ENABLE_INDICATORS   — "1" (default) or "0" to disable /indicators
 #   METASURVEY_ENABLE_WORKER       — "0" (default) or "1" to enable POST /compute
+#   METASURVEY_ENABLE_DOCS         — "0" (default) or "1" to enable Swagger UI
 #
 # Launch:
 #   METASURVEY_MONGO_URI="mongodb+srv://user:pass@cluster.mongodb.net" \
@@ -47,6 +48,13 @@ library(jose)
 #* @plumber
 function(pr) {
   pr$setSerializer(serializer_json(auto_unbox = TRUE))
+
+  # Disable Swagger UI in production (set METASURVEY_ENABLE_DOCS=1 to enable)
+  enable_docs <- tolower(Sys.getenv("METASURVEY_ENABLE_DOCS", "0")) %in%
+    c("1", "true", "yes")
+  if (!enable_docs) {
+    pr$setDocs(FALSE)
+  }
 
   # Enhance OpenAPI spec with security scheme and API info
   spec <- pr$getApiSpec()
@@ -98,6 +106,21 @@ ENABLE_INDICATORS <- tolower(Sys.getenv(
 ENABLE_WORKER <- tolower(Sys.getenv(
   "METASURVEY_ENABLE_WORKER", "0"
 )) %in% c("1", "true", "yes")
+REDIS_URL <- Sys.getenv("REDIS_URL", "")
+REDIS_HOST <- Sys.getenv("REDIS_HOST", "")
+REDIS_PORT <- Sys.getenv("REDIS_PORT", "6379")
+REDIS_PASSWORD <- Sys.getenv("REDIS_PASSWORD", "")
+ENABLE_REDIS <- nzchar(REDIS_URL) || nzchar(REDIS_HOST)
+ENABLE_ASYNC <- tolower(Sys.getenv(
+  "METASURVEY_ENABLE_ASYNC", "0"
+)) %in% c("1", "true", "yes")
+ENABLE_DOCS <- tolower(Sys.getenv(
+  "METASURVEY_ENABLE_DOCS", "0"
+)) %in% c("1", "true", "yes")
+
+# Rate limiting config
+RATE_LIMIT_MAX <- 5L # max attempts per window
+RATE_LIMIT_WINDOW <- 300L # 5 minutes
 
 if (!nzchar(MONGO_URI)) {
   stop(
@@ -168,6 +191,242 @@ message(sprintf(
   "[metasurvey-api] Features — indicators: %s, worker: %s",
   if (ENABLE_INDICATORS) "ON" else "OFF",
   if (ENABLE_WORKER) "ON" else "OFF"
+))
+
+# -- Redis connection ---------------------------------------------------------
+
+redis_con <- NULL
+
+# Resolve Redis connection params from env vars.
+# Priority: individual REDIS_HOST/PORT/PASSWORD > parse REDIS_URL
+resolve_redis_params <- function() {
+  host <- Sys.getenv("REDIS_HOST", "")
+  port <- Sys.getenv("REDIS_PORT", "6379")
+  pass <- Sys.getenv("REDIS_PASSWORD", "")
+  if (nzchar(host)) {
+    return(list(
+      host = host,
+      port = as.integer(port),
+      password = if (nzchar(pass)) pass else NULL
+    ))
+  }
+  # Fallback: parse REDIS_URL
+  url <- trimws(Sys.getenv("REDIS_URL", ""))
+  if (!grepl("^redis://", url)) {
+    return(NULL)
+  }
+  rest <- sub("^redis://", "", url)
+  password <- NULL
+  if (grepl("@", rest)) {
+    auth <- sub("@.*$", "", rest)
+    rest <- sub("^[^@]+@", "", rest)
+    if (grepl(":", auth)) {
+      password <- sub("^[^:]*:", "", auth)
+    } else {
+      password <- auth
+    }
+  }
+  rest <- sub("/.*$", "", rest)
+  parts <- strsplit(rest, ":")[[1]]
+  host <- parts[1]
+  port <- if (length(parts) >= 2) as.integer(parts[2]) else 6379L
+  if (!nzchar(host)) {
+    return(NULL)
+  }
+  list(host = host, port = port, password = password)
+}
+
+redis_error_msg <- NULL
+
+if (ENABLE_REDIS) {
+  redis_params <- resolve_redis_params()
+  message(sprintf(
+    "[metasurvey-api] Connecting to Redis: %s:%s",
+    if (!is.null(redis_params)) redis_params$host else "?",
+    if (!is.null(redis_params)) redis_params$port else "?"
+  ))
+  # redux reads REDIS_URL env var internally and fails on authenticated URLs.
+  # Workaround: build a clean URL without auth and pass password separately.
+  redis_con <- tryCatch(
+    {
+      if (!is.null(redis_params)) {
+        clean_url <- sprintf("redis://%s:%d", redis_params$host, redis_params$port)
+        r <- redux::hiredis(url = clean_url)
+        if (!is.null(redis_params$password)) {
+          r$AUTH(redis_params$password)
+        }
+        r
+      } else {
+        redux::hiredis()
+      }
+    },
+    error = function(e) {
+      redis_error_msg <<- e$message
+      message(sprintf(
+        "[metasurvey-api] Redis connection failed (disabled): %s",
+        e$message
+      ))
+      NULL
+    }
+  )
+  if (!is.null(redis_con)) {
+    message("[metasurvey-api] Redis: connected")
+  }
+} else {
+  message("[metasurvey-api] Redis: disabled (no REDIS_URL or REDIS_HOST)")
+}
+
+# -- Cache helpers ------------------------------------------------------------
+
+cache_params_hash <- function(...) {
+  params <- list(...)
+  params <- params[order(names(params))]
+  digest::digest(params, algo = "xxhash32", serialize = TRUE)
+}
+
+cache_get <- function(key) {
+  if (is.null(redis_con)) {
+    return(NULL)
+  }
+  raw <- tryCatch(redis_con$GET(key), error = function(e) NULL)
+  if (is.null(raw)) {
+    return(NULL)
+  }
+  tryCatch(
+    jsonlite::fromJSON(raw, simplifyVector = FALSE),
+    error = function(e) NULL
+  )
+}
+
+cache_set <- function(key, value, ttl) {
+  if (is.null(redis_con)) {
+    return(invisible(NULL))
+  }
+  json <- tryCatch(
+    jsonlite::toJSON(value, auto_unbox = TRUE, null = "null"),
+    error = function(e) NULL
+  )
+  if (is.null(json)) {
+    return(invisible(NULL))
+  }
+  tryCatch(
+    redis_con$SETEX(key, as.integer(ttl), json),
+    error = function(e) invisible(NULL)
+  )
+}
+
+cache_del <- function(...) {
+  if (is.null(redis_con)) {
+    return(invisible(NULL))
+  }
+  keys <- c(...)
+  for (k in keys) {
+    tryCatch(redis_con$DEL(k), error = function(e) invisible(NULL))
+  }
+}
+
+cache_del_pattern <- function(pattern) {
+  if (is.null(redis_con)) {
+    return(invisible(NULL))
+  }
+  tryCatch(
+    {
+      cursor <- "0"
+      repeat {
+        result <- redis_con$SCAN(cursor, "MATCH", pattern, "COUNT", "100")
+        cursor <- result[[1]]
+        keys <- result[[2]]
+        if (length(keys) > 0) {
+          for (k in keys) redis_con$DEL(k)
+        }
+        if (cursor == "0") break
+      }
+    },
+    error = function(e) invisible(NULL)
+  )
+}
+
+# -- Rate limiting helpers ---------------------------------------------------
+
+rate_limit_check <- function(action, client_ip) {
+  if (is.null(redis_con)) {
+    return(TRUE)
+  }
+  key <- sprintf("ratelimit:%s:%s", action, client_ip)
+  tryCatch(
+    {
+      count <- redis_con$INCR(key)
+      if (identical(as.integer(count), 1L)) {
+        redis_con$EXPIRE(key, RATE_LIMIT_WINDOW)
+      }
+      as.integer(count) <= RATE_LIMIT_MAX
+    },
+    error = function(e) TRUE
+  )
+}
+
+rate_limit_remaining <- function(action, client_ip) {
+  if (is.null(redis_con)) {
+    return(RATE_LIMIT_MAX)
+  }
+  key <- sprintf("ratelimit:%s:%s", action, client_ip)
+  count <- tryCatch(as.integer(redis_con$GET(key) %||% "0"),
+    error = function(e) 0L
+  )
+  max(0L, RATE_LIMIT_MAX - count)
+}
+
+# -- Job queue helpers --------------------------------------------------------
+
+JOB_TTL <- 3600L
+QUEUE_KEY <- "queue:compute"
+
+make_job_id <- function() {
+  paste0("job_", as.integer(Sys.time()), "_", sample.int(99999L, 1L))
+}
+
+job_get <- function(job_id) {
+  if (is.null(redis_con)) {
+    return(NULL)
+  }
+  raw <- tryCatch(
+    redis_con$GET(paste0("job:", job_id)),
+    error = function(e) NULL
+  )
+  if (is.null(raw)) {
+    return(NULL)
+  }
+  tryCatch(
+    jsonlite::fromJSON(raw, simplifyVector = FALSE),
+    error = function(e) NULL
+  )
+}
+
+job_set <- function(job_id, data) {
+  if (is.null(redis_con)) {
+    return(invisible(NULL))
+  }
+  json <- jsonlite::toJSON(data, auto_unbox = TRUE, null = "null")
+  tryCatch(
+    redis_con$SETEX(paste0("job:", job_id), JOB_TTL, json),
+    error = function(e) invisible(NULL)
+  )
+}
+
+job_enqueue <- function(job_id) {
+  if (is.null(redis_con)) {
+    return(invisible(NULL))
+  }
+  tryCatch(
+    redis_con$LPUSH(QUEUE_KEY, job_id),
+    error = function(e) invisible(NULL)
+  )
+}
+
+message(sprintf(
+  "[metasurvey-api] Features — async: %s, docs: %s",
+  if (ENABLE_ASYNC && !is.null(redis_con)) "ON" else "OFF",
+  if (ENABLE_DOCS) "ON" else "OFF"
 ))
 
 # -- JWT helpers --------------------------------------------------------------
@@ -245,6 +504,25 @@ function(req, res) {
   res$setHeader("Access-Control-Allow-Origin", "*")
   res$setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
   res$setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+  # Security headers
+  res$setHeader("X-Content-Type-Options", "nosniff")
+  res$setHeader("X-Frame-Options", "DENY")
+  res$setHeader("X-XSS-Protection", "1; mode=block")
+  res$setHeader("Referrer-Policy", "strict-origin-when-cross-origin")
+  res$setHeader(
+    "Strict-Transport-Security",
+    "max-age=31536000; includeSubDomains"
+  )
+  res$setHeader(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=()"
+  )
+  res$setHeader(
+    "Content-Security-Policy",
+    "default-src 'none'; frame-ancestors 'none'"
+  )
+
   if (req$REQUEST_METHOD == "OPTIONS") {
     res$status <- 200L
     return(list())
@@ -282,6 +560,14 @@ function(req, res, name, email, password,
     return(list(error = "name, email, and password are required"))
   }
 
+  # Prevent NoSQL injection
+  if (!is.character(name) || !is.character(email) ||
+    !is.character(password) || length(name) != 1 ||
+    length(email) != 1 || length(password) != 1) {
+    res$status <- 400L
+    return(list(error = "name, email, and password are required"))
+  }
+
   valid_types <- c("individual", "institutional_member", "institution")
   if (!user_type %in% valid_types) {
     res$status <- 400L
@@ -300,12 +586,12 @@ function(req, res, name, email, password,
 
   # Check duplicate
   existing <- db_users$find(
-    query = toJSON(list(email = email), auto_unbox = TRUE),
+    query = toJSON(list(email = jsonlite::unbox(email)), auto_unbox = FALSE),
     limit = 1
   )
   if (nrow(existing) > 0) {
     res$status <- 409L
-    return(list(error = "Email already registered"))
+    return(list(error = "Registration failed. Please try again or login."))
   }
 
   # Institutional accounts require admin review
@@ -390,12 +676,31 @@ function(req, res, email, password) {
     return(list(error = "email and password are required"))
   }
 
+  # Prevent NoSQL injection: ensure email/password are plain strings
+  if (!is.character(email) || !is.character(password) ||
+    length(email) != 1 || length(password) != 1) {
+    res$status <- 400L
+    return(list(error = "email and password are required"))
+  }
+
+  # Rate limiting: max 5 attempts per IP per 5 minutes
+  client_ip <- req$REMOTE_ADDR %||% "unknown"
+  if (!rate_limit_check("login", client_ip)) {
+    res$status <- 429L
+    remaining <- rate_limit_remaining("login", client_ip)
+    res$setHeader("Retry-After", as.character(RATE_LIMIT_WINDOW))
+    return(list(
+      error = "Too many login attempts. Try again later.",
+      retry_after = RATE_LIMIT_WINDOW
+    ))
+  }
+
   query <- toJSON(
     list(
-      email = email,
-      password_hash = hash_password(password)
+      email = jsonlite::unbox(email),
+      password_hash = jsonlite::unbox(hash_password(password))
     ),
-    auto_unbox = TRUE
+    auto_unbox = FALSE
   )
   result <- db_users$find(query = query, limit = 1)
 
@@ -667,6 +972,20 @@ function(req, res, email) {
 #*   user_info, doc, ...}]}.
 function(req, res, search = NULL, survey_type = NULL, topic = NULL,
          certification = NULL, user = NULL, limit = 50, offset = 0) {
+  cache_key <- sprintf(
+    "cache:recipes_list:%s",
+    cache_params_hash(
+      search = search %||% "", survey_type = survey_type %||% "",
+      topic = topic %||% "", certification = certification %||% "",
+      user = user %||% "", limit = as.integer(limit),
+      offset = as.integer(offset)
+    )
+  )
+  cached <- cache_get(cache_key)
+  if (!is.null(cached)) {
+    return(cached)
+  }
+
   filter <- list()
   if (!is.null(survey_type) && nzchar(survey_type)) {
     filter$survey_type <- survey_type
@@ -693,8 +1012,6 @@ function(req, res, search = NULL, survey_type = NULL, topic = NULL,
 
   tryCatch(
     {
-      # mongolite $find returns a data.frame;
-      # use $iterate for list-of-lists
       iter <- db_recipes$iterate(
         query = query_json,
         sort = '{"downloads": -1}',
@@ -705,10 +1022,16 @@ function(req, res, search = NULL, survey_type = NULL, topic = NULL,
       docs <- list()
       while (!is.null(doc <- iter$one())) {
         doc[["_id"]] <- NULL
+        # Strip email from public responses
+        if (!is.null(doc$user_info)) {
+          doc$user_info$email <- NULL
+        }
         docs[[length(docs) + 1L]] <- doc
       }
 
-      list(ok = TRUE, count = length(docs), recipes = docs)
+      result <- list(ok = TRUE, count = length(docs), recipes = docs)
+      cache_set(cache_key, result, 60L)
+      result
     },
     error = function(e) {
       res$status <- 500L
@@ -723,6 +1046,12 @@ function(req, res, search = NULL, survey_type = NULL, topic = NULL,
 #* @response 200 Returns {ok, recipe: {id, name, user, survey_type, ...}}.
 #* @response 404 Recipe not found.
 function(req, res, id) {
+  cache_key <- sprintf("cache:recipe:%s", id)
+  cached <- cache_get(cache_key)
+  if (!is.null(cached)) {
+    return(cached)
+  }
+
   tryCatch(
     {
       iter <- db_recipes$iterate(
@@ -737,7 +1066,10 @@ function(req, res, id) {
       }
 
       doc[["_id"]] <- NULL
-      list(ok = TRUE, recipe = doc)
+      if (!is.null(doc$user_info)) doc$user_info$email <- NULL
+      result <- list(ok = TRUE, recipe = doc)
+      cache_set(cache_key, result, 300L)
+      result
     },
     error = function(e) {
       res$status <- 500L
@@ -810,6 +1142,7 @@ function(req, res) {
   tryCatch(
     {
       db_recipes$insert(toJSON(body, auto_unbox = TRUE, null = "null"))
+      cache_del_pattern("cache:recipes_list:*")
       res$status <- 201L
       list(ok = TRUE, id = body$id)
     },
@@ -831,6 +1164,8 @@ function(req, res, id) {
         query = toJSON(list(id = id), auto_unbox = TRUE),
         update = '{"$inc": {"downloads": 1}}'
       )
+      cache_del(sprintf("cache:recipe:%s", id))
+      cache_del_pattern("cache:recipes_list:*")
       list(ok = TRUE)
     },
     error = function(e) {
@@ -848,7 +1183,9 @@ function(req, res, id) {
 #* @response 401 Unauthorized.
 function(req, res, id) {
   user <- require_auth(req, res)
-  if (is.list(user) && !is.null(user$error)) return(user)
+  if (is.list(user) && !is.null(user$error)) {
+    return(user)
+  }
 
   body <- tryCatch(jsonlite::fromJSON(req$postBody), error = function(e) list())
   value <- as.integer(body$value)
@@ -877,6 +1214,7 @@ function(req, res, id) {
         ), auto_unbox = TRUE),
         upsert = TRUE
       )
+      cache_del(sprintf("cache:recipe:%s", id))
       list(ok = TRUE, value = value)
     },
     error = function(e) {
@@ -928,7 +1266,9 @@ function(req, res, id) {
 #* @response 401 Unauthorized.
 function(req, res, id) {
   user <- require_auth(req, res)
-  if (is.list(user) && !is.null(user$error)) return(user)
+  if (is.list(user) && !is.null(user$error)) {
+    return(user)
+  }
 
   body <- tryCatch(jsonlite::fromJSON(req$postBody), error = function(e) list())
   text <- trimws(body$text %||% "")
@@ -1035,6 +1375,19 @@ function(req, res, id) {
 #*   calls, ...}]}.
 function(req, res, search = NULL, survey_type = NULL, recipe_id = NULL,
          user = NULL, limit = 50, offset = 0) {
+  cache_key <- sprintf(
+    "cache:wf_list:%s",
+    cache_params_hash(
+      search = search %||% "", survey_type = survey_type %||% "",
+      recipe_id = recipe_id %||% "", user = user %||% "",
+      limit = as.integer(limit), offset = as.integer(offset)
+    )
+  )
+  cached <- cache_get(cache_key)
+  if (!is.null(cached)) {
+    return(cached)
+  }
+
   filter <- list()
   if (!is.null(survey_type) && nzchar(survey_type)) {
     filter$survey_type <- survey_type
@@ -1067,10 +1420,13 @@ function(req, res, search = NULL, survey_type = NULL, recipe_id = NULL,
       docs <- list()
       while (!is.null(doc <- iter$one())) {
         doc[["_id"]] <- NULL
+        if (!is.null(doc$user_info)) doc$user_info$email <- NULL
         docs[[length(docs) + 1L]] <- doc
       }
 
-      list(ok = TRUE, count = length(docs), workflows = docs)
+      result <- list(ok = TRUE, count = length(docs), workflows = docs)
+      cache_set(cache_key, result, 60L)
+      result
     },
     error = function(e) {
       res$status <- 500L
@@ -1085,6 +1441,12 @@ function(req, res, search = NULL, survey_type = NULL, recipe_id = NULL,
 #* @response 200 Returns {ok, workflow: {id, name, user, survey_type, ...}}.
 #* @response 404 Workflow not found.
 function(req, res, id) {
+  cache_key <- sprintf("cache:wf:%s", id)
+  cached <- cache_get(cache_key)
+  if (!is.null(cached)) {
+    return(cached)
+  }
+
   tryCatch(
     {
       iter <- db_workflows$iterate(
@@ -1099,7 +1461,10 @@ function(req, res, id) {
       }
 
       doc[["_id"]] <- NULL
-      list(ok = TRUE, workflow = doc)
+      if (!is.null(doc$user_info)) doc$user_info$email <- NULL
+      result <- list(ok = TRUE, workflow = doc)
+      cache_set(cache_key, result, 300L)
+      result
     },
     error = function(e) {
       res$status <- 500L
@@ -1171,6 +1536,7 @@ function(req, res) {
   tryCatch(
     {
       db_workflows$insert(toJSON(body, auto_unbox = TRUE, null = "null"))
+      cache_del_pattern("cache:wf_list:*")
       res$status <- 201L
       list(ok = TRUE, id = body$id)
     },
@@ -1192,6 +1558,8 @@ function(req, res, id) {
         query = toJSON(list(id = id), auto_unbox = TRUE),
         update = '{"$inc": {"downloads": 1}}'
       )
+      cache_del(sprintf("cache:wf:%s", id))
+      cache_del_pattern("cache:wf_list:*")
       list(ok = TRUE)
     },
     error = function(e) {
@@ -1207,7 +1575,9 @@ function(req, res, id) {
 #* @response 200 Returns {ok, value}.
 function(req, res, id) {
   user <- require_auth(req, res)
-  if (is.list(user) && !is.null(user$error)) return(user)
+  if (is.list(user) && !is.null(user$error)) {
+    return(user)
+  }
 
   body <- tryCatch(jsonlite::fromJSON(req$postBody), error = function(e) list())
   value <- as.integer(body$value)
@@ -1236,6 +1606,7 @@ function(req, res, id) {
         ), auto_unbox = TRUE),
         upsert = TRUE
       )
+      cache_del(sprintf("cache:wf:%s", id))
       list(ok = TRUE, value = value)
     },
     error = function(e) {
@@ -1284,7 +1655,9 @@ function(req, res, id) {
 #* @response 200 Returns {ok, comment}.
 function(req, res, id) {
   user <- require_auth(req, res)
-  if (is.list(user) && !is.null(user$error)) return(user)
+  if (is.list(user) && !is.null(user$error)) {
+    return(user)
+  }
 
   body <- tryCatch(jsonlite::fromJSON(req$postBody), error = function(e) list())
   text <- trimws(body$text %||% "")
@@ -1358,7 +1731,9 @@ function(req, res, id) {
 #* @response 403 Forbidden — not the comment author.
 function(req, res, comment_id) {
   user <- require_auth(req, res)
-  if (is.list(user) && !is.null(user$error)) return(user)
+  if (is.list(user) && !is.null(user$error)) {
+    return(user)
+  }
 
   tryCatch(
     {
@@ -1426,7 +1801,23 @@ function(req, res, search = NULL,
          edition = NULL,
          limit = 50, offset = 0) {
   guard <- require_indicators(res)
-  if (!is.null(guard)) return(guard)
+  if (!is.null(guard)) {
+    return(guard)
+  }
+
+  cache_key <- sprintf(
+    "cache:ind_list:%s",
+    cache_params_hash(
+      search = search %||% "", survey_type = survey_type %||% "",
+      recipe_id = recipe_id %||% "", workflow_id = workflow_id %||% "",
+      edition = edition %||% "", limit = as.integer(limit),
+      offset = as.integer(offset)
+    )
+  )
+  cached <- cache_get(cache_key)
+  if (!is.null(cached)) {
+    return(cached)
+  }
 
   filter <- list()
   if (!is.null(survey_type) && nzchar(survey_type)) {
@@ -1466,10 +1857,13 @@ function(req, res, search = NULL,
       docs <- list()
       while (!is.null(doc <- iter$one())) {
         doc[["_id"]] <- NULL
+        if (!is.null(doc$user_info)) doc$user_info$email <- NULL
         docs[[length(docs) + 1L]] <- doc
       }
 
-      list(ok = TRUE, count = length(docs), indicators = docs)
+      result <- list(ok = TRUE, count = length(docs), indicators = docs)
+      cache_set(cache_key, result, 60L)
+      result
     },
     error = function(e) {
       res$status <- 500L
@@ -1492,7 +1886,15 @@ function(req, res, search = NULL,
 #* @response 404 Indicator not found.
 function(req, res, id) {
   guard <- require_indicators(res)
-  if (!is.null(guard)) return(guard)
+  if (!is.null(guard)) {
+    return(guard)
+  }
+
+  cache_key <- sprintf("cache:ind:%s", id)
+  cached <- cache_get(cache_key)
+  if (!is.null(cached)) {
+    return(cached)
+  }
 
   tryCatch(
     {
@@ -1511,7 +1913,10 @@ function(req, res, id) {
       }
 
       doc[["_id"]] <- NULL
-      list(ok = TRUE, indicator = doc)
+      if (!is.null(doc$user_info)) doc$user_info$email <- NULL
+      result <- list(ok = TRUE, indicator = doc)
+      cache_set(cache_key, result, 3600L)
+      result
     },
     error = function(e) {
       res$status <- 500L
@@ -1531,7 +1936,15 @@ function(req, res, id) {
 #* @response 404 Indicator not found.
 function(req, res, id) {
   guard <- require_indicators(res)
-  if (!is.null(guard)) return(guard)
+  if (!is.null(guard)) {
+    return(guard)
+  }
+
+  cache_key <- sprintf("cache:ind_recipe:%s", id)
+  cached <- cache_get(cache_key)
+  if (!is.null(cached)) {
+    return(cached)
+  }
 
   tryCatch(
     {
@@ -1567,9 +1980,14 @@ function(req, res, id) {
         limit = 1
       )
       rdoc <- riter$one()
-      if (!is.null(rdoc)) rdoc[["_id"]] <- NULL
+      if (!is.null(rdoc)) {
+        rdoc[["_id"]] <- NULL
+        if (!is.null(rdoc$user_info)) rdoc$user_info$email <- NULL
+      }
 
-      list(ok = TRUE, indicator_id = id, recipe = rdoc)
+      result <- list(ok = TRUE, indicator_id = id, recipe = rdoc)
+      cache_set(cache_key, result, 3600L)
+      result
     },
     error = function(e) {
       res$status <- 500L
@@ -1592,7 +2010,15 @@ function(req, res, id) {
 #* @response 404 Indicator not found.
 function(req, res, id) {
   guard <- require_indicators(res)
-  if (!is.null(guard)) return(guard)
+  if (!is.null(guard)) {
+    return(guard)
+  }
+
+  cache_key <- sprintf("cache:ind_wf:%s", id)
+  cached <- cache_get(cache_key)
+  if (!is.null(cached)) {
+    return(cached)
+  }
 
   tryCatch(
     {
@@ -1628,13 +2054,14 @@ function(req, res, id) {
         limit = 1
       )
       wdoc <- witer$one()
-      if (!is.null(wdoc)) wdoc[["_id"]] <- NULL
+      if (!is.null(wdoc)) {
+        wdoc[["_id"]] <- NULL
+        if (!is.null(wdoc$user_info)) wdoc$user_info$email <- NULL
+      }
 
-      list(
-        ok = TRUE,
-        indicator_id = id,
-        workflow = wdoc
-      )
+      result <- list(ok = TRUE, indicator_id = id, workflow = wdoc)
+      cache_set(cache_key, result, 3600L)
+      result
     },
     error = function(e) {
       res$status <- 500L
@@ -1656,7 +2083,9 @@ function(req, res, id) {
 #* @response 401 Authentication required.
 function(req, res) {
   guard <- require_indicators(res)
-  if (!is.null(guard)) return(guard)
+  if (!is.null(guard)) {
+    return(guard)
+  }
 
   user <- require_auth(req, res)
   if (is.list(user) && !is.null(user$error)) {
@@ -1707,6 +2136,7 @@ function(req, res) {
         auto_unbox = TRUE,
         null = "null"
       ))
+      cache_del_pattern("cache:ind_list:*")
       res$status <- 201L
       list(ok = TRUE, id = body$id)
     },
@@ -1720,27 +2150,116 @@ function(req, res) {
   )
 }
 
-#* Request an on-demand computation from the
-#* worker. Proxies the request to the internal
-#* compute worker, stores the result as an
-#* indicator, and returns it. Requires JWT.
-#*
-#* The frontend can use this to request
-#* estimations with specific filters
-#* (by variable, domain subset).
+# -- Synchronous compute helper (used as fallback when async is off) ----------
+
+.compute_sync <- function(body, user, res) {
+  tryCatch(
+    {
+      worker_resp <- httr2::request(
+        paste0(WORKER_URL, "/compute")
+      ) |>
+        httr2::req_body_json(body) |>
+        httr2::req_timeout(300) |>
+        httr2::req_perform()
+
+      worker_result <- httr2::resp_body_json(worker_resp)
+
+      if (!isTRUE(worker_result$ok)) {
+        res$status <- 502L
+        return(list(
+          error = "Worker computation failed",
+          detail = worker_result$error
+        ))
+      }
+
+      indicator_ids <- character(0)
+      results <- worker_result$results
+
+      for (r in results) {
+        ind_id <- paste0(
+          "ind_", as.integer(Sys.time()),
+          "_", sample.int(9999, 1)
+        )
+
+        ind_doc <- list(
+          id = ind_id,
+          name = r$stat %||% "Computed indicator",
+          workflow_id = body$workflow_id,
+          recipe_id = if (length(body$recipe_ids) > 0) {
+            body$recipe_ids[[1]]
+          } else {
+            NULL
+          },
+          survey_type = body$survey_type,
+          edition = body$edition,
+          estimation_type = body$estimation_type %||% "annual",
+          stat = r$stat,
+          value = r$value,
+          se = r$se,
+          cv = r$cv,
+          confint_lower = r$confint_lower,
+          confint_upper = r$confint_upper,
+          metadata = list(
+            call = r$call,
+            by_group = r$by_group,
+            filters = body$filters,
+            computed_on_demand = TRUE
+          ),
+          user = user$sub,
+          user_info = list(
+            name = user$name,
+            user_type = user$user_type,
+            email = user$sub
+          ),
+          published_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ"),
+          metasurvey_version = "0.0.16"
+        )
+
+        db_indicators$insert(toJSON(
+          ind_doc,
+          auto_unbox = TRUE, null = "null"
+        ))
+        indicator_ids <- c(indicator_ids, ind_id)
+      }
+
+      cache_del_pattern("cache:ind_list:*")
+
+      list(
+        ok = TRUE,
+        indicator_ids = indicator_ids,
+        count = length(results),
+        results = results
+      )
+    },
+    error = function(e) {
+      res$status <- 502L
+      list(error = paste("Worker request failed:", e$message))
+    }
+  )
+}
+
+#* Request an on-demand computation.
+#* When async mode is enabled (Redis + METASURVEY_ENABLE_ASYNC=1),
+#* returns 202 Accepted with a job_id. Poll GET /jobs/<job_id>
+#* for status and results.
+#* When async is disabled, runs synchronously (original behavior).
 #*
 #* @tag Indicators
 #* @post /indicators/compute
-#* @response 200 Returns {ok, indicator_id,
-#*   results: [{stat, value, se, cv, ...}]}.
+#* @response 200 Synchronous result: {ok, indicator_ids, count, results}.
+#* @response 202 Job accepted (async): {ok, job_id, status, poll_url}.
 #* @response 400 Missing fields or no worker.
 #* @response 401 Authentication required.
 #* @response 502 Worker unavailable or error.
 function(req, res) {
   guard <- require_indicators(res)
-  if (!is.null(guard)) return(guard)
+  if (!is.null(guard)) {
+    return(guard)
+  }
   guard <- require_worker(res)
-  if (!is.null(guard)) return(guard)
+  if (!is.null(guard)) {
+    return(guard)
+  }
 
   user <- require_auth(req, res)
   if (is.list(user) && !is.null(user$error)) {
@@ -1754,9 +2273,7 @@ function(req, res) {
   }
 
   required <- c("workflow_id", "survey_type", "edition")
-  missing_fields <- required[
-    !required %in% names(body)
-  ]
+  missing_fields <- required[!required %in% names(body)]
   if (length(missing_fields) > 0) {
     res$status <- 400L
     return(list(error = paste(
@@ -1765,100 +2282,76 @@ function(req, res) {
     )))
   }
 
-  tryCatch(
-    {
-      # Forward to worker
-      worker_resp <- httr2::request(
-        paste0(WORKER_URL, "/compute")
-      ) |>
-        httr2::req_body_json(body) |>
-        httr2::req_timeout(300) |>
-        httr2::req_perform()
+  # Async path: Redis available + feature flag on
+  if (ENABLE_ASYNC && !is.null(redis_con)) {
+    job_id <- make_job_id()
 
-      worker_result <- httr2::resp_body_json(
-        worker_resp
-      )
+    job_data <- list(
+      job_id    = job_id,
+      status    = "queued",
+      params    = body,
+      user      = user$sub,
+      user_name = user$name,
+      user_type = user$user_type,
+      queued_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ")
+    )
 
-      if (!isTRUE(worker_result$ok)) {
-        res$status <- 502L
-        return(list(
-          error = "Worker computation failed",
-          detail = worker_result$error
-        ))
-      }
+    job_set(job_id, job_data)
+    job_enqueue(job_id)
 
-      # Store each result as an indicator
-      indicator_ids <- character(0)
-      results <- worker_result$results
+    res$status <- 202L
+    return(list(
+      ok       = TRUE,
+      job_id   = job_id,
+      status   = "queued",
+      poll_url = paste0("/jobs/", job_id)
+    ))
+  }
 
-      for (r in results) {
-        ind_id <- paste0(
-          "ind_", as.integer(Sys.time()),
-          "_", sample.int(9999, 1)
-        )
+  # Synchronous fallback (original behavior)
+  .compute_sync(body, user, res)
+}
 
-        filters_meta <- body$filters
-        ind_doc <- list(
-          id = ind_id,
-          name = r$stat %||% "Computed indicator",
-          workflow_id = body$workflow_id,
-          recipe_id = if (length(body$recipe_ids) > 0) {
-            body$recipe_ids[[1]]
-          } else {
-            NULL
-          },
-          survey_type = body$survey_type,
-          edition = body$edition,
-          estimation_type = body$estimation_type %||%
-            "annual",
-          stat = r$stat,
-          value = r$value,
-          se = r$se,
-          cv = r$cv,
-          confint_lower = r$confint_lower,
-          confint_upper = r$confint_upper,
-          metadata = list(
-            call = r$call,
-            by_group = r$by_group,
-            filters = filters_meta,
-            computed_on_demand = TRUE
-          ),
-          user = user$sub,
-          user_info = list(
-            name = user$name,
-            user_type = user$user_type,
-            email = user$sub
-          ),
-          published_at = format(
-            Sys.time(),
-            "%Y-%m-%dT%H:%M:%SZ"
-          ),
-          metasurvey_version = "0.0.16"
-        )
+#* Poll the status of an async computation job.
+#* Returns queued, running, completed, or failed.
+#* Results are included when status is "completed".
+#*
+#* @tag Jobs
+#* @get /jobs/<job_id>
+#* @response 200 Returns {ok, job_id, status, [results], [error]}.
+#* @response 404 Job not found or expired.
+#* @response 503 Redis unavailable.
+function(req, res, job_id) {
+  if (is.null(redis_con)) {
+    res$status <- 503L
+    return(list(error = "Async jobs unavailable (Redis not configured)"))
+  }
 
-        db_indicators$insert(toJSON(
-          ind_doc,
-          auto_unbox = TRUE,
-          null = "null"
-        ))
-        indicator_ids <- c(indicator_ids, ind_id)
-      }
+  job <- job_get(job_id)
 
-      list(
-        ok = TRUE,
-        indicator_ids = indicator_ids,
-        count = length(results),
-        results = results
-      )
-    },
-    error = function(e) {
-      res$status <- 502L
-      list(error = paste(
-        "Worker request failed:",
-        e$message
-      ))
-    }
+  if (is.null(job)) {
+    res$status <- 404L
+    return(list(error = "Job not found or expired"))
+  }
+
+  out <- list(
+    ok          = TRUE,
+    job_id      = job$job_id,
+    status      = job$status,
+    queued_at   = job$queued_at,
+    started_at  = job$started_at,
+    finished_at = job$finished_at
   )
+
+  if (identical(job$status, "completed")) {
+    out$indicator_ids <- job$indicator_ids
+    out$count <- job$count
+    out$results <- job$results
+  } else if (identical(job$status, "failed")) {
+    out$error <- job$error
+  }
+
+  out
 }
 
 # ==============================================================================
@@ -1878,6 +2371,19 @@ function(req, res) {
 #*   description, source_edition,
 #*   source_catalog_id}]}.
 function(survey_type = "ech", names = "") {
+  names_key <- if (nzchar(names)) {
+    digest::digest(sort(tolower(trimws(strsplit(names, ",")[[1]]))),
+      algo = "xxhash32", serialize = TRUE
+    )
+  } else {
+    "all"
+  }
+  cache_key <- sprintf("cache:anda:%s:%s", survey_type, names_key)
+  cached <- cache_get(cache_key)
+  if (!is.null(cached)) {
+    return(cached)
+  }
+
   query <- list(survey_type = survey_type)
 
   if (nzchar(names)) {
@@ -1889,7 +2395,9 @@ function(survey_type = "ech", names = "") {
   query_json <- jsonlite::toJSON(query, auto_unbox = TRUE)
   docs <- db_anda$find(query_json, fields = '{"_id": 0}')
 
-  list(ok = TRUE, count = nrow(docs), variables = docs)
+  result <- list(ok = TRUE, count = nrow(docs), variables = docs)
+  cache_set(cache_key, result, 86400L)
+  result
 }
 
 # ==============================================================================
@@ -1904,7 +2412,6 @@ function(survey_type = "ech", names = "") {
 #* @response 200 Returns {status, service,
 #*   version, database, mongodb, timestamp}.
 function() {
-  # Quick connectivity check
   ok <- tryCatch(
     {
       db_users$count()
@@ -1913,12 +2420,31 @@ function() {
     error = function(e) FALSE
   )
 
+  redis_ok <- if (!is.null(redis_con)) {
+    tryCatch(
+      {
+        as.character(redis_con$PING()) == "PONG"
+      },
+      error = function(e) FALSE
+    )
+  } else {
+    NA
+  }
+
   list(
     status = if (ok) "ok" else "degraded",
     service = "metasurvey-api",
     version = "2.0.0",
     database = DATABASE,
     mongodb = if (ok) "connected" else "disconnected",
+    redis = if (is.na(redis_ok)) {
+      "disabled"
+    } else if (redis_ok) {
+      "connected"
+    } else {
+      "disconnected"
+    },
+    async = ENABLE_ASYNC && !is.null(redis_con),
     timestamp = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ")
   )
 }
